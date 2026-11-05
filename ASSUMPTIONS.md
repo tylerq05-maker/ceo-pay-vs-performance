@@ -68,3 +68,12 @@ Each entry states the decision, the reason, and its likely impact.
 | A10 | Robustness: companies with **no equity grant in the 3y window** (AMZN, COIN, META, PLTR; equity share <5% of SCT pay) are excluded in one specification. | Their CEOs' SCT pay is near-zero by design (founder or multi-year mega-grant), so they are high-leverage points. | Excluding them, the TSR slope becomes significant (+11.6% pay per +10 pp TSR, p=0.001). Reported transparently as a key nuance. |
 | A11 | Pay mix uses reconciled SCT rows only, summed over the window's fiscal years (component $ / total $). Bonus = discretionary bonus column; "cash incentive" = bonus + non-equity incentive plan. | Weighted mix avoids small-year distortion. | 100/100 companies have at least one reconciled year (99 in the 3y model). |
 | A12 | Sector-level correlations use Spearman's rho with n of 4-17 per sector. They are descriptive only, with low statistical power. | Small cells. | Shown in a chart with sample sizes; not over-interpreted. |
+
+## Phase 5 - Outlier evidence
+
+| # | Assumption / decision | Why | Impact |
+|---|---|---|---|
+| E1 | Say-on-pay results are parsed from each company's 8-K **Item 5.07** filings since 2024. Support = For / (For + Against + Abstain). Broker non-votes are excluded. | Primary source; the "votes cast" basis used by proxy advisers. Some companies report For/(For+Against), so company-quoted figures can differ by a few tenths of a point (e.g. Ares quotes 92.3%, we compute 92.2%). | Parsed for 90/100 companies (248 meetings). Low-support parses were spot-checked against the filing text. 10 companies' 8-K layouts were not parsed. |
+| E2 | Say-on-pay support at **controlled companies** (Coinbase, Palantir, Ares; confirmed in each proxy) mainly reflects insider votes and is not read as outside-investor approval. | Founder/insider voting control. | Interpretation only. |
+| E3 | Case-study facts not computed from our dataset (award sizes, vesting terms, vote outcomes) are quoted from the cited SEC filings first and news outlets second. Figures in news articles that we could not match to a filing are not used. | "Every number must trace back to the data." | Each case study lists its sources with links. |
+| E4 | Proxy keyword snippets (`outlier_evidence.json`) are a research aid to find relevant CD&A passages, not an analytical input. | Speeds up reading 300-page proxies. | None on results. |

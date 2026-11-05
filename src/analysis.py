@@ -331,6 +331,36 @@ def panel_analysis(panel: pd.DataFrame) -> dict:
     return out
 
 
+def say_on_pay_analysis(m: pd.DataFrame) -> dict:
+    """Do shareholders vote against CEOs paid above the model?"""
+    path = config.DATA_PROCESSED / "say_on_pay.csv"
+    if not path.exists():
+        return {}
+    sop = pd.read_csv(path)
+    agg = sop.groupby("ticker").agg(sop_avg=("support", "mean"), sop_min=("support", "min"),
+                                    sop_meetings=("support", "size"))
+    latest = sop.sort_values("meeting_date").groupby("ticker").tail(1).set_index("ticker")["support"]
+    agg["sop_latest"] = latest
+    res = pd.read_csv(config.DATA_PROCESSED / "residuals_3y.csv")[["ticker", "resid", "tsr_3y_ann"]]
+    d = res.merge(agg, left_on="ticker", right_index=True, how="inner")
+    d.to_csv(OUT_TABLES / "say_on_pay_vs_residual.csv", index=False)
+    d["resid_q"] = pd.qcut(d["resid"], 4, labels=["Q1 (most underpaid)", "Q2", "Q3", "Q4 (most overpaid)"])
+    by_q = d.groupby("resid_q", observed=True)["sop_avg"].agg(["mean", "median", "size"]).reset_index()
+    fit_res = fit("I(100*sop_avg) ~ resid + I(100*tsr_3y_ann)", d)
+    return {
+        "n_companies": int(len(d)), "n_meetings": int(len(sop)),
+        "median_support": float(sop["support"].median()),
+        "n_failed_votes": int((sop["support"] < 0.5).sum()),
+        "failed_votes": sop.loc[sop["support"] < 0.5, ["ticker", "meeting_date", "support"]].to_dict(orient="records"),
+        "n_below_70": int((sop["support"] < 0.7).sum()),
+        "companies_below_70": sorted(sop.loc[sop["support"] < 0.7, "ticker"].unique().tolist()),
+        "corr_resid_support": corr(d["resid"], d["sop_avg"]),
+        "corr_tsr_support": corr(d["tsr_3y_ann"], d["sop_avg"]),
+        "ols_support_on_resid_tsr": summarize(fit_res, key="resid"),
+        "support_by_resid_quartile": by_q.to_dict(orient="records"),
+    }
+
+
 def tsr_quality(m: pd.DataFrame) -> dict:
     P = config.DATA_PROCESSED
     fis = pd.read_csv(P / "tsr_fiscal.csv")
@@ -382,6 +412,7 @@ def run() -> dict:
     results["pay_mix"] = pay_mix_analysis(m)
     results["panel"] = panel_analysis(panel)
     results["tsr_quality"] = tsr_quality(m)
+    results["say_on_pay"] = say_on_pay_analysis(m)
 
     path = config.ROOT / "output" / "results.json"
     path.write_text(json.dumps(results, indent=2, default=lambda o: o.item() if hasattr(o, "item") else str(o)))
