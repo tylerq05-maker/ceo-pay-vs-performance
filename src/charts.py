@@ -443,9 +443,10 @@ def linkedin(r, res) -> None:
     ov = r["outliers"]["overpaid"][0]
     un = r["outliers"]["underpaid"][0]
     sop = r["say_on_pay"]["corr_resid_support"]
+    cs = r["correlations"][f"{n}y"]
     bullets = [
-        f"Size, not returns, sets granted pay: 2× the market cap ≈ {100 * (2 ** size['size_elasticity'] - 1):+.0f}%\n"
-        f"pay, while +10 pts of annual TSR ≈ {sct['pct_pay_per_10pp_tsr']:+.1f}% (not significant).",
+        f"Size matters more than returns: granted pay ranks track company\n"
+        f"size (ρ = {cs['sct_vs_mcap']['spearman_rho']:.2f}) far more than TSR (ρ = {cs['sct_vs_tsr']['spearman_rho']:.2f}, not significant).",
         "Stock prices do the aligning: realised pay rises and falls\nwith returns.",
         f"Biggest outliers: {ov['ticker']} paid {ov['pay_vs_predicted_pct']:+.0f}% vs model; "
         f"{un['ticker']} {un['pay_vs_predicted_pct']:+.0f}%\n(no new CEO equity grant since 2021).",
