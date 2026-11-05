@@ -13,6 +13,7 @@ Every number drawn comes from ``output/results.json`` or ``data/processed``.
 from __future__ import annotations
 
 import json
+import logging
 
 import matplotlib
 
@@ -53,6 +54,7 @@ def _fonts() -> list[str]:
 
 
 def _style() -> None:
+    logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)  # glyph-fallback weight notices
     plt.rcParams.update({
         "font.family": _fonts(),
         "font.size": 10.5,

@@ -77,3 +77,13 @@ Each entry states the decision, the reason, and its likely impact.
 | E2 | Say-on-pay support at **controlled companies** (Coinbase, Palantir, Ares; confirmed in each proxy) mainly reflects insider votes and is not read as outside-investor approval. | Founder/insider voting control. | Interpretation only. |
 | E3 | Case-study facts not computed from our dataset (award sizes, vesting terms, vote outcomes) are quoted from the cited SEC filings first and news outlets second. Figures in news articles that we could not match to a filing are not used. | "Every number must trace back to the data." | Each case study lists its sources with links. |
 | E4 | Proxy keyword snippets (`outlier_evidence.json`) are a research aid to find relevant CD&A passages, not an analytical input. | Speeds up reading 300-page proxies. | None on results. |
+
+## Phase 6 - Deliverables
+
+| # | Assumption / decision | Why | Impact |
+|---|---|---|---|
+| R1 | `report.md`/`report.pdf` and `README.md` are **rendered from `output/results.json` and processed CSVs** by `src/report.py`. No statistic is typed by hand. Filing facts (award sizes, vesting terms, board statements) are quoted with a link to the SEC filing or news article. | Brief: every number must trace to the data. | Re-running the pipeline on new data updates every figure consistently. |
+| R2 | Case-study verdicts use three labels: *explained* (a documented structural or one-time cause), *no clear one-off reason* (a sustained pay-level choice, e.g. BKNG), and *not investigated in depth* (outlier-table rows outside the deep dives). | Brief: say explicitly when no clear reason exists. | |
+| R3 | Charts are static PNGs (light theme) for print/PDF. The dataviz palette was validated for colour-vision deficiency. Their "table view" is the CSV set in `output/tables/`. | Report and README embed images. Interactivity does not apply to PDF. | |
+| R4 | The LinkedIn graphic is 1080x1350 px (4:5 portrait, the largest feed format) and states its sample, sources and "correlation, not causation". | Standalone shareability. | |
+| R5 | The notebook regenerates the analysis offline from committed processed data. `RUN_PIPELINE = True` re-downloads from source. | Runs top to bottom without network or credentials. | |

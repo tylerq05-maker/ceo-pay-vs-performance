@@ -354,7 +354,117 @@ code { font-family: "JetBrains Mono", monospace; font-size: 7.6pt; }
 """
 
 
+def build_readme() -> str:
+    """README with key findings rendered from the same results as the report."""
+    d = Data()
+    r = d.r
+    D, C, R, SP, TQ, PM = (r["descriptives"], r["correlations"], r["regressions"], r["say_on_pay"],
+                          r["tsr_quality"], r["pay_mix"])
+    s1, s3, c1, c3 = (R["sct_3y_1_simple"], R["sct_3y_3_size_sector"], R["cap_3y_1_simple"],
+                      R["cap_3y_3_size_sector"])
+    xn = R["robustness_3y"]["excl_no_equity_grants"]
+    o = r["outliers"]
+    rows = []
+    for x in o["overpaid"][:3] + o["underpaid"][:3]:
+        rows.append(f"| {x['ticker']} | {x['company']} | {M(x['sct_avg_3y'])} | {M(x['predicted_pay'])} | "
+                    f"{x['pay_vs_predicted_pct']:+.0f}% | {100 * x['tsr_3y_ann']:+.0f}% | {DRIVER.get(x['ticker'], '')} |")
+    mis = ", ".join(f"{x['ticker']} ({x['pay_vs_predicted_pct']:+.0f}% vs model, TSR {100 * x['tsr_3y_ann']:+.0f}%/yr)"
+                    for x in o["misaligned_high_pay_low_tsr"][:3])
+    failed = ", ".join(sorted({f["ticker"] for f in SP["failed_votes"]}))
+    return f"""# CEO Pay vs. Performance: Do S&P 500 CEOs Get Paid for Shareholder Returns?
+
+An end-to-end equity-research project: it pulls CEO pay from SEC pay-versus-performance XBRL filings,
+rebuilds total shareholder return (TSR) independently from market data, tests whether pay tracks
+returns, and investigates the biggest outliers with primary sources.
+
+<p align="center"><img src="output/charts/linkedin_summary.png" width="420" alt="Summary chart"></p>
+
+## Key findings
+
+*{D['n_companies']}-company, sector-stratified S&P 500 sample; {D['n_company_years']} CEO-years; primary window = each company's latest 3 fiscal years (mostly FY2023–FY2025).*
+
+1. **Granted pay does not track returns.** 3-year annualised TSR explains **{100 * s1['r2']:.1f}%** of the variation in the
+   pay boards award (Summary Compensation Table). After size and sector controls, +10 points of annual TSR goes with
+   **{s3['pct_pay_per_10pp_tsr']:+.1f}%** pay (p = {s3['coefs']['tsr_pp_w']['p']:.2f}). Within companies, pay does not move with the same year's
+   TSR (p = {r['panel']['sct_same_year']['p']:.2f}).
+2. **Realised pay does.** TSR explains **{100 * c1['r2']:.0f}%** of the variation in *compensation actually paid* (CAP);
+   +10 points of TSR ≈ **{c3['pct_pay_per_10pp_tsr']:+.0f}%** CAP (p < 0.001). Alignment runs through the stock CEOs already hold.
+3. **Size matters more than performance.** Pay ranks track company size (Spearman ρ = {C['3y']['sct_vs_mcap']['spearman_rho']:.2f}) far more
+   than TSR (ρ = {C['3y']['sct_vs_tsr']['spearman_rho']:.2f}). Excluding four founder/lump-grant companies ({', '.join(xn['excluded'])}), a modest
+   link appears: +10 points of TSR ≈ {xn['pct_pay_per_10pp_tsr']:+.1f}% pay (p = {xn['coefs']['tsr_pp_w']['p']:.3f}) vs {100 * (2 ** xn['size_elasticity'] - 1):+.0f}% for doubling market cap.
+4. **The biggest "overpaid" outliers were strong performers.** Their excess pay traces to structural or one-time awards:
+   Ares' fee-for-equity swap, Palo Alto's mega-grants (a failed {pct(min(v for _, v in d.sop_list('PANW')))} say-on-pay vote), Goldman's $80M retention RSUs.
+   The "underpaid" end is founders and lumpy multi-year grants (Amazon, Palantir, Coinbase) whose *realised* pay is enormous.
+   The classic high-pay/weak-return case appears in a misalignment screen: {mis}.
+5. **Shareholders react to the level of pay, not to returns.** Above-model pay gets lower say-on-pay support
+   (ρ = {SP['corr_resid_support']['spearman_rho']:.2f}, p = {SP['corr_resid_support']['spearman_p']:.3f}); TSR is unrelated (p = {SP['corr_tsr_support']['spearman_p']:.2f}). Failed votes in sample: {failed}.
+6. **Proxy TSR contains errors.** Our independent TSR matches the proxy within 1 point for {100 * TQ['share_within_1pt']:.0f}% of
+   company-years, but {TQ['n_companies_flagged']} of {D['n_companies']} PvP tables are off by more than 10 points, mostly because earlier years
+   were never rebased when the table rolled forward.
+7. **Pay mix does not predict returns.** Median CEO pay is {100 * PM['median_mix']['equity']:.0f}% equity; equity share is unrelated to TSR
+   (ρ = {PM['corr']['equity']['spearman_rho']:.2f}).
+
+### Outliers (residuals from `ln(granted pay) ~ TSR + ln(market cap) + sector`)
+
+| Ticker | Company | 3-yr avg pay | Model | vs model | TSR/yr | Likely driver |
+|---|---|---:|---:|---:|---:|---|
+{chr(10).join(rows)}
+
+Full case studies with SEC and news citations are in [`output/report/report.pdf`](output/report/report.pdf).
+
+## Deliverables
+
+| Path | What |
+|---|---|
+| [`output/report/report.pdf`](output/report/report.pdf) / [`.md`](output/report/report.md) | 5-page equity-research write-up |
+| [`notebooks/analysis.ipynb`](notebooks/analysis.ipynb) | Full walkthrough; runs top to bottom offline |
+| [`output/charts/`](output/charts) | Pay-vs-TSR scatter, sector breakdown, residual outliers, pay mix, say-on-pay, TSR cross-check |
+| [`output/charts/linkedin_summary.png`](output/charts/linkedin_summary.png) | Standalone 1080x1350 summary graphic |
+| [`data/processed/master.csv`](data/processed/master.csv) | Tidy company-level dataset ({D['n_companies']} rows) |
+| [`data/processed/master_panel.csv`](data/processed/master_panel.csv) | Company x fiscal-year panel |
+| [`output/results.json`](output/results.json) | Every statistic quoted in the report |
+| [`output/tables/`](output/tables) | Regression, sector, outlier, pay-mix and say-on-pay tables (chart table views) |
+| [`ASSUMPTIONS.md`](ASSUMPTIONS.md) | Every judgment call, with rationale and impact |
+
+## How to reproduce
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+export SEC_CONTACT_EMAIL="you@example.com"     # SEC requires a contact in the User-Agent
+python -m src.pipeline --notebook               # ~10 min cold, seconds when cached
+```
+
+* `FULL_UNIVERSE=1 python -m src.pipeline` runs all ~500 S&P 500 companies instead of the 100-company sample.
+* All downloads are cached in `data/raw/` (git-ignored), so nothing is fetched twice. SEC requests are throttled to 8/s.
+* The notebook reproduces the analysis offline from the committed `data/processed/` files.
+
+## Method in brief
+
+* **Universe.** S&P 500 constituents, GICS sectors and CIKs from Wikipedia, with CIKs verified against SEC. The sample uses proportional sector stratification (seed 42).
+* **Pay.** The `ecd` pay-versus-performance XBRL in each latest DEF 14A gives `PeoTotalCompAmt`, `PeoActuallyPaidCompAmt`, `TotalShareholderRtnAmt` and `PeerGroupTotalShareholderRtnAmt`. Multi-CEO years come from `ecd:IndividualAxis`; the year-end incumbent is used and flagged. The Summary Compensation Table is parsed from HTML for pay mix, keeping only rows that reconcile to the XBRL total.
+* **Performance.** TSR is a dividend-reinvested total-return index from yfinance, over each company's own fiscal windows (1/3/5 years). It is cross-checked against proxy TSR, and gaps are diagnosed automatically.
+* **Models.** OLS with HC3 errors, using winsorised TSR, start-of-window log market cap and sector fixed effects. Robustness covers raw TSR, peer-relative TSR, revenue size, CEO-seat pay, CEO-change exclusions and rank-rank models. The panel adds company and year fixed effects.
+* **Evidence.** Say-on-pay results come from 8-K Item 5.07 ({SP['n_meetings']} meetings), plus CD&A keyword extraction, proxy reading and news.
+
+## Data sources
+
+* SEC EDGAR: submissions API, DEF 14A filings and XBRL instances, 8-K Item 5.07 vote results.
+* Yahoo Finance via `yfinance`: daily prices, dividends, splits, market cap, income statement.
+* Wikipedia: *List of S&P 500 companies* (constituents, GICS sector, CIK).
+
+## Limitations
+
+Current-constituent sample (survivorship bias); n ≈ 100; 1–5 years of PvP history; lumpy grant-date values;
+CAP is a mark-to-market measure partly linked to TSR by construction; approximated start-of-window market cap;
+filing errors; correlation, not causation. See the report and `ASSUMPTIONS.md`.
+
+*Research project for educational purposes; not investment advice.*
+"""
+
+
 def build() -> None:
+    (config.ROOT / "README.md").write_text(build_readme())
     md = build_markdown()
     out_md = config.REPORT / "report.md"
     out_md.write_text(md)
