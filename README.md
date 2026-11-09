@@ -10,7 +10,7 @@ returns, and investigates the biggest outliers with primary sources.
 
 *100-company, sector-stratified S&P 500 sample; 496 CEO-years; primary window = each company's latest 3 fiscal years (mostly FY2023–FY2025).*
 
-1. **Granted pay does not track returns.** 3-year annualised TSR explains **0.5%** of the variation in the
+1. **Granted pay barely tracks returns.** 3-year annualised TSR explains **0.5%** of the variation in the
    pay boards award (Summary Compensation Table). After size and sector controls, +10 points of annual TSR goes with
    **+1.8%** pay (p = 0.69). Within companies, pay does not move with the same year's
    TSR (p = 0.81).
@@ -24,7 +24,7 @@ returns, and investigates the biggest outliers with primary sources.
    The "underpaid" end is founders and lumpy multi-year grants (Amazon, Palantir, Coinbase) whose *realised* pay is enormous.
    The classic high-pay/weak-return case appears in a misalignment screen: OMC (+54% vs model, TSR +3%/yr), PEP (+48% vs model, TSR -4%/yr), AEP (+46% vs model, TSR +11%/yr).
 5. **Shareholders react to the level of pay, not to returns.** Above-model pay gets lower say-on-pay support
-   (ρ = -0.30, p = 0.004); TSR is unrelated (p = 0.85). Failed votes in sample: MMM, PANW, SWKS.
+   (ρ = -0.30, p = 0.004); TSR is unrelated (p = 0.91). Failed votes in sample: MMM, PANW, SWKS.
 6. **Proxy TSR contains errors.** Our independent TSR matches the proxy within 1 point for 84% of
    company-years, but 12 of 100 PvP tables are off by more than 10 points, mostly because earlier years
    were never rebased when the table rolled forward.
@@ -33,6 +33,8 @@ returns, and investigates the biggest outliers with primary sources.
 8. **Excess pay did not predict future returns.** Point-in-time quintiles formed 2024-09-30 and 2025-09-30: rank correlation
    with later CAPM abnormal returns +0.03 and +0.03 (p = 0.78, 0.79).
    A raw-mean "signal" of +94 points came from one stock (BE).
+9. **A long-short backtest earned no alpha.** Long the most-underpaid fifth, short the most-overpaid, rebalanced each 30 Sept (2024-10-01 to 2026-11-04): total -15.0%, Sharpe -0.49, CAPM alpha -1.8%/yr (t = -0.22, Newey-West). The raw loss is beta (1.25 vs 0.85).
+10. **The pattern holds on the full S&P 500** (n = 481): TSR explains 0.9% of granted pay and 42% of realised pay; with five times the companies a small granted-pay link is detectable (+6.1% per 10 points, p = 0.028). Say-on-pay vs excess pay: ρ = -0.30; strategy IC +0.01 / +0.02; backtest alpha -0.4%/yr (t = -0.09). See the report appendix.
 
 **How we know it is right:** XBRL pay found verbatim in the proxy for 100/100 companies,
 301/301 pay-mix rows reconcile, 27/27 case-study facts verified in the filings,
@@ -54,7 +56,7 @@ When the page is opened as a claude.ai Artifact, an **AI analyst** answers quest
 | Document | Purpose |
 |---|---|
 | [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) | What we built, the problem, how it works, AI use, output, validity, why it matters |
-| [`docs/AI_USAGE_AND_QC.md`](docs/AI_USAGE_AND_QC.md) | How AI was used, the QC stack, and 18 real errors caught |
+| [`docs/AI_USAGE_AND_QC.md`](docs/AI_USAGE_AND_QC.md) | How AI was used, the QC stack, and 27 real errors caught |
 | [`docs/DEFENSE_GUIDE.md`](docs/DEFENSE_GUIDE.md) | 60-second pitch, every component explained, expected questions with answers |
 | [`docs/CHECKIN_1_GAME_PLAN.md`](docs/CHECKIN_1_GAME_PLAN.md) / [`CHECKIN_2_PROGRESS.md`](docs/CHECKIN_2_PROGRESS.md) | Talking points for the two check-ins |
 
@@ -108,7 +110,7 @@ python -m pytest -q                             # unit tests
 * **Pay.** The `ecd` pay-versus-performance XBRL in each latest DEF 14A gives `PeoTotalCompAmt`, `PeoActuallyPaidCompAmt`, `TotalShareholderRtnAmt` and `PeerGroupTotalShareholderRtnAmt`. Multi-CEO years come from `ecd:IndividualAxis`; the year-end incumbent is used and flagged. The Summary Compensation Table is parsed from HTML for pay mix, keeping only rows that reconcile to the XBRL total.
 * **Performance.** TSR is a dividend-reinvested total-return index from yfinance, over each company's own fiscal windows (1/3/5 years). It is cross-checked against proxy TSR, and gaps are diagnosed automatically.
 * **Models.** OLS with HC3 errors, using winsorised TSR, start-of-window log market cap and sector fixed effects. Robustness covers raw TSR, peer-relative TSR, revenue size, CEO-seat pay, CEO-change exclusions and rank-rank models. The panel adds company and year fixed effects.
-* **Evidence.** Say-on-pay results come from 8-K Item 5.07 (248 meetings), plus CD&A keyword extraction, proxy reading and news.
+* **Evidence.** Say-on-pay results come from 8-K Item 5.07 (247 meetings), plus CD&A keyword extraction, proxy reading and news.
 
 ## Data sources
 

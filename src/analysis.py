@@ -169,7 +169,7 @@ def regressions(m: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     d4["ln_rev"] = np.log(d4["revenue_latest"])
     rob["revenue_size"] = summarize(fit("ln_pay ~ tsr_pp_w + ln_rev + C(sector)", d4))
     d5 = d.copy()
-    d5["ln_seat"] = np.log(d5[f"seat_sct_avg_{n}y"])
+    d5["ln_seat"] = np.log(d5[f"seat_sct_avg_{n}y"].where(d5[f"seat_sct_avg_{n}y"] > 0))
     rob["ceo_seat_pay"] = summarize(fit("ln_seat ~ tsr_pp_w + ln_mcap + C(sector)", d5))
     # Rank-rank regression (fully outlier-robust)
     d6 = d.copy()
@@ -308,6 +308,7 @@ def pay_mix_analysis(m: pd.DataFrame) -> dict:
 def panel_analysis(panel: pd.DataFrame) -> dict:
     """Within-company: does pay move with the *same year's* TSR?"""
     p = panel.dropna(subset=["indep_tsr_annual", "ceo_sct_total", "ceo_cap"]).copy()
+    p = p[p["ceo_sct_total"] > 0]  # log pay needs a positive figure ($0 years: Tesla 2021-23)
     p["tsr_pp"] = winsorize(100 * p["indep_tsr_annual"])
     p["ln_sct"] = np.log(p["ceo_sct_total"])
     p["asinh_cap"] = np.arcsinh(p["ceo_cap"] / 1e6)

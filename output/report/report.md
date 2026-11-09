@@ -1,18 +1,19 @@
 <div class="masthead">
 <div class="kicker">Equity Research · Governance &amp; Compensation · November 2026</div>
-<h1>Paid for Size, Not for Returns</h1>
+<h1>Paid for Size, Barely for Returns</h1>
 <div class="dek">Do S&amp;P 500 CEOs get paid for shareholder returns? Evidence from 100 companies' SEC pay-versus-performance disclosures</div>
 <div class="byline">Tyler Quezada · Sector-stratified sample of 100 S&amp;P 500 constituents · 496 CEO-years (FY2021–FY2026)</div>
 </div>
 
 ## Executive summary
 
-- **Granted pay does not track returns.** Across 99 companies, annualised 3-year TSR explains **0.5%** of the variation in the pay boards award (Summary Compensation Table). Each extra 10 points of annual TSR is associated with just **+1.8%** more pay after size and sector controls (p = 0.69). Within companies, pay does not respond to the same year's return either (p = 0.81).
+- **Granted pay barely tracks returns.** Across 99 companies, annualised 3-year TSR explains **0.5%** of the variation in the pay boards award (Summary Compensation Table). Each extra 10 points of annual TSR is associated with just **+1.8%** more pay after size and sector controls (p = 0.69). Within companies, pay does not respond to the same year's return either (p = 0.81).
 - **Realised pay does, largely by construction.** Compensation actually paid (CAP) marks equity to market; TSR explains **46%** of its variation and +10 points of TSR goes with roughly **+58%** more CAP (p < 0.001). Alignment comes from the stock CEOs already hold, not from boards adjusting new awards.
 - **Size matters more than performance.** Granted pay ranks with company size (Spearman ρ = 0.55) far more than with TSR (ρ = 0.15). A weak link to TSR exists once four founder/lump-grant companies are set aside (AMZN, COIN, META, PLTR): +10 points of TSR then means **+11.6%** pay (p = 0.001), versus **+24%** for a doubling of market cap.
 - **The biggest "overpaid" outliers were strong performers.** ARES, PANW, BKNG, GS, WSM were paid 151–244% above model, but all returned 37–51%/yr. One-time or structural awards explain most of the gap. The "underpaid" end is dominated by founders and lumpy multi-year grants whose *realised* pay is enormous (AMZN, PLTR, COIN), plus 2 CEO transitions (CINF, KDP).
 - **Shareholders notice.** Companies paying further above model receive lower say-on-pay support (ρ = -0.30, p = 0.004); TSR itself is unrelated to support. 3 votes failed outright (3M, Palo Alto Networks, Skyworks Solutions).
 - **Read proxy TSR with care.** 12 of 100 proxies contain TSR figures that miss market data by more than 10 points, mostly because earlier years were never rebased when the table rolled forward.
+- **The pattern holds on the full S&P 500.** Re-run on every index member with data (n = 481): TSR explains 0.9% of granted pay and 42% of realised pay; pay ranks with size 0.47 vs TSR 0.16. With five times the companies, a small granted-pay link becomes detectable (+6.1% per 10 points, p = 0.028). It lies inside the sample's 95% interval (-7% to +11%), so the precise conclusion is that granted pay responds weakly to returns, not that it ignores them (appendix).
 
 ## Methodology
 
@@ -21,7 +22,7 @@
 **Pay mix.** Pay mix is parsed from the Summary Compensation Table HTML. A row is kept only if its components sum to its total *and* that total equals the XBRL figure.
 **Performance.** TSR is computed independently from Yahoo Finance prices with dividends reinvested, over each company's own fiscal windows (1, 3 and 5 years; 3 is primary). The proxy-reported TSR serves as a cross-check.
 **Models.** OLS with HC3 robust errors: ln(average granted pay) and asinh(average CAP, $M) on annualised TSR (winsorised at 2.5/97.5%), ln(market cap at window start) and sector dummies.
-**Outliers.** Outliers are the residuals of the granted-pay model. Say-on-pay votes are parsed from 8-K Item 5.07 filings (248 meetings, 89 companies). Every assumption is logged in `ASSUMPTIONS.md`; automated validation (permutation and bootstrap tests, numpy re-estimation, source-document and claim checks) is in `output/validation/validation_report.md`.
+**Outliers.** Outliers are the residuals of the granted-pay model. Say-on-pay votes are parsed from 8-K Item 5.07 filings (247 meetings, 89 companies). Every assumption is logged in `ASSUMPTIONS.md`; automated validation (permutation and bootstrap tests, numpy re-estimation, source-document and claim checks) is in `output/validation/validation_report.md`.
 
 ## Key findings
 
@@ -59,11 +60,14 @@ The exception is the last row. AMZN, COIN, META, PLTR paid their CEOs almost not
 
 **4. Pay mix does not predict returns.** The median CEO's 3-year pay is 73% equity, 15% cash incentive and 7% salary; 42% of CEOs received options. Equity share is unrelated to TSR (ρ = -0.06, p = 0.55; excluding the four no-grant CEOs ρ = 0.06). A higher option share went with somewhat lower TSR (ρ = -0.24, p = 0.019), a correlation that likely reflects sector and maturity rather than incentives (`04_pay_mix_by_tsr_quintile.png`).
 
-**5. Shareholders punish the level of pay, not weak returns.** Median say-on-pay support was 92.2%; 18 meetings fell below the 70% level proxy advisers treat as a warning. Support falls as the pay residual rises (ρ = -0.30, p = 0.004) but is unrelated to TSR (ρ = -0.02, p = 0.85). In a linear model controlling for TSR the residual effect is -3.6 points of support per log point of excess pay (p = 0.29), so the effect is real but modest (`05_say_on_pay_vs_residual.png`).
+**5. Shareholders punish the level of pay, not weak returns.** Median say-on-pay support was 92.2%; 18 meetings fell below the 70% level proxy advisers treat as a warning. Support falls as the pay residual rises (ρ = -0.30, p = 0.004) but is unrelated to TSR (ρ = -0.01, p = 0.91). In a linear model controlling for TSR the residual effect is -3.6 points of support per log point of excess pay (p = 0.30), so the effect is real but modest (`05_say_on_pay_vs_residual.png`).
 
 **6. Pay-versus-performance tables contain errors.** Our independent TSR matches the proxy within 1 point for 84% of company-years (median gap 0.07 points). The errors cluster. 9 companies carried earlier-year TSR forward from the prior year's base instead of restating it, and BlackRock tagged its values one year early. Palantir's PvP table shows 2024 CEO pay of $4,630,170 while its Summary Compensation Table shows $4,360,170, a transposition in the same filing ([proxy](https://www.sec.gov/Archives/edgar/data/1321655/000132165526000019/pltr-20260423.htm)). Multi-year proxy TSR should not be used without checking it against market data (`06_tsr_crosscheck.png`).
 
 **7. Excess pay did not predict future returns.** Following Cooper, Gulen &amp; Rau, who found that high "excess pay" firms underperformed in 1994–2011, we formed point-in-time quintiles on the pay residual using only data public at formation. Cohort A used FY2021–23 pay and was formed 2024-09-30; cohort B used FY2022–24 pay and was formed 2025-09-30. CAPM abnormal returns (pre-formation beta, T-bill risk-free rate) show no relation in either cohort: rank correlation +0.03 (p = 0.78) and +0.03 (p = 0.79); most-overpaid minus most-underpaid median +0.0 and -7.5 points. A raw-mean spread of +94 points in cohort A came from one stock (BE), which is why medians are used (`07_strategy_test.png`).
+
+**8. A portfolio backtest agrees.** Rebalanced each 30 September, a portfolio long the most-underpaid fifth and short the most-overpaid fifth (equal-weighted, daily returns 2024-10-01 to 2026-11-04) returned -15.0% in total, with a Sharpe ratio of -0.49. Its CAPM alpha was -1.8% a year (t = -0.22, Newey-West). The raw loss is market exposure, not a pay effect: the overpaid fifth's beta was 1.25 against 0.85 for the underpaid fifth (`08_backtest.png`). On the full index (about 96 stocks per fifth) the alpha is -0.4% a year (t = -0.09).
+
 
 ## Outliers: who is paid most above and below the model
 
@@ -128,6 +132,31 @@ The board has made no new equity grant to Armstrong since the August 2020 **CEO 
 ## Conclusion
 
 In this sample, boards set CEO pay mainly by company size and peer benchmarks; awarded pay responds little to the returns shareholders receive. Pay-for-performance alignment is real but runs through the stock: equity grants become worth far more or far less as the share price moves, which is why realised pay tracks TSR closely. The largest deviations from the size-and-sector norm come from deliberate structural choices: mega-grants at Palo Alto, fee-for-equity swaps at Ares, retention awards at Goldman, front-loaded options at Omnicom, and founder grants at Palantir, Coinbase and Amazon. They do not come from boards rewarding weak results. Investors should judge pay on realised outcomes and grant frequency rather than single-year headline numbers. They should also check proxy TSR against market data before relying on it.
+
+## Appendix: replication on the full S&P 500
+
+The same pipeline and model were re-run on every S&P 500 company. 492 of 500 have pay-versus-performance XBRL; the rest are recent listings or spin-offs without a full proxy yet. For the full index, size comes from SEC-reported shares outstanding × price because Yahoo's quote service refused bulk requests. On the 100 sample companies the two measures agree within 10% for 97 (correlation 0.99; exceptions KMB, ARES, SWKS reflect share classes and pending mergers).
+
+| Measure | 100-company sample | Full S&P 500 |
+|---|---|---|
+| Companies in the 3-year model | 99 | 481 |
+| Share of granted pay explained by TSR (R²) | 0.5% | 0.9% |
+| Granted pay per +10 pts TSR (size + sector) | +1.8% (p = 0.69) | +6.1% (p = 0.028) |
+| Share of realised pay explained by TSR (R²) | 46% | 42% |
+| Realised pay per +10 pts TSR | +58% | +40% |
+| Rank correlation of pay with size / with TSR | 0.55 / 0.15 | 0.47 / 0.16 |
+| Granted pay per +10 pts TSR, 5-year window | +13.6% (p = 0.047) | +15.1% (p = 0.027) |
+| Same, excluding CEOs with no equity grant in window | +11.6% (p = 0.001; 4 excluded) | +8.5% (p < 0.001; 30 excluded) |
+| Say-on-pay support vs excess pay (Spearman) | -0.30 (p = 0.004) | -0.30 (p < 0.001) |
+| Excess pay → later abnormal return (rank IC, cohorts A / B) | +0.03 / +0.03 | +0.01 / +0.02 |
+| Long-short backtest CAPM alpha per year (t) | -1.8% (-0.22) | -0.4% (-0.09) |
+| Companies with proxy TSR errors > 10 pts | 12 | 69 |
+| XBRL pay found in the proxy (verbatim or within the filer's rounding) | 100/100 | 492/492 |
+| Say-on-pay parse agrees with company-reported figure | 57/57 | 274/295 |
+
+Full-index top residuals: above model TSLA, WELL, ARES, ORCL, CRWD; below model XYZ, ABNB, TTWO, DASH, AMZN. The case studies above cover the sample; the full-index list is shown for transparency. Tesla's figure is Musk's 2025 award ($158.4B in the Summary Compensation Table) averaged with a $0 year; Devon Energy, which tagged its pay in thousands, was rescaled (ASSUMPTIONS F5–F7). Say-on-pay disagreements on the full index were spot-checked by hand: for S&P Global, Seagate and Expedia our parse matches the company's own words and the checker had read a different year's figure; Workday (dual-class shares) is unresolved.
+
+<img class="half" src="../charts/09_replication.png" alt="Replication chart">
 
 <div class="sources">
 <b>Data.</b> SEC EDGAR: DEF 14A pay-versus-performance XBRL (ecd taxonomy), Summary Compensation Tables, 8-K Item 5.07 vote results. Yahoo Finance: prices, dividends, market cap. Wikipedia: S&amp;P 500 constituents (CIKs verified against SEC). Results file: <code>output/results.json</code>. Full assumption log: <code>ASSUMPTIONS.md</code>.

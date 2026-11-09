@@ -1,0 +1,537 @@
+{
+  "reestimation": {
+    "sct": {
+      "statsmodels_tsr": 0.005875358790452775,
+      "numpy_tsr": 0.005875358790452923,
+      "statsmodels_r2": 0.10135807020519183,
+      "numpy_r2": 0.10135807020519183,
+      "max_abs_coef_diff": 2.5908095113713614e-15,
+      "pass": true
+    },
+    "cap": {
+      "statsmodels_tsr": 0.033290842578662064,
+      "numpy_tsr": 0.03329084257866226,
+      "statsmodels_r2": 0.4937945634039551,
+      "numpy_r2": 0.4937945634039551,
+      "max_abs_coef_diff": 3.608224830031759e-16,
+      "pass": true
+    }
+  },
+  "permutation": {
+    "sct": {
+      "observed_coef": 0.005875358790452775,
+      "perm_p_two_sided": 0.0075,
+      "observed_simple_r2": 0.009033938292728848,
+      "placebo_r2_p95": 0.008626156463566485,
+      "share_placebo_r2_above_observed": 0.0435
+    },
+    "cap": {
+      "observed_coef": 0.033290842578662064,
+      "perm_p_two_sided": 0.0,
+      "observed_simple_r2": 0.4226179432902033,
+      "placebo_r2_p95": 0.008927105312211258,
+      "share_placebo_r2_above_observed": 0.0
+    }
+  },
+  "bootstrap": {
+    "sct": {
+      "ci95_coef": [
+        0.001234118370374209,
+        0.011387017575741112
+      ],
+      "ci95_pct_pay_per_10pp": [
+        1.2417650350552867,
+        12.060663353276668
+      ],
+      "share_positive": 0.9955,
+      "n_draws": 2000
+    },
+    "cap": {
+      "ci95_coef": [
+        0.028818256584417383,
+        0.038880621197671314
+      ],
+      "ci95_pct_pay_per_10pp": [
+        33.40008248801447,
+        47.52186439263117
+      ],
+      "share_positive": 1.0,
+      "n_draws": 2000
+    }
+  },
+  "influence": {
+    "base_coef": 0.005875358790452775,
+    "base_p": 0.02781282886883798,
+    "min_p_any_drop": 0.009638085126322483,
+    "max_p_any_drop": 0.050209387874007166,
+    "n_drops_significant_5pct": 480,
+    "n_drops": 481,
+    "most_influential": [
+      {
+        "ticker": "TSLA",
+        "coef": 0.00434,
+        "p": 0.04656,
+        "delta": -0.00153
+      },
+      {
+        "ticker": "XYZ",
+        "coef": 0.00463,
+        "p": 0.05021,
+        "delta": -0.00124
+      },
+      {
+        "ticker": "DASH",
+        "coef": 0.0067,
+        "p": 0.00964,
+        "delta": 0.00082
+      },
+      {
+        "ticker": "HOOD",
+        "coef": 0.00651,
+        "p": 0.0129,
+        "delta": 0.00064
+      },
+      {
+        "ticker": "WELL",
+        "coef": 0.00536,
+        "p": 0.04254,
+        "delta": -0.00052
+      }
+    ]
+  },
+  "source_match": {
+    "n": 492,
+    "sct_found": 492,
+    "cap_found": 492,
+    "sct_exact": 488,
+    "cap_exact": 487,
+    "sct_missing": [],
+    "cap_missing": []
+  },
+  "mix_reconciliation": {
+    "rows": 1410,
+    "companies": 476,
+    "sum_check_pass": 1410,
+    "xbrl_match_pass": 1410
+  },
+  "claims": [
+    {
+      "ticker": "ARES",
+      "claim": "400,000 restricted units granted Jan-2024 in exchange for lower incentive-fee allocations",
+      "verified": true,
+      "evidence": "entive Fee Agreement\") with Messrs. Arougheti and deVeer to grant each of Messrs. Arougheti and deVeer 400,000 restricted units in exchange for a reduction in his respective allocations of certain incentive fees (th",
+      "source": "https://www.sec.gov/Archives/edgar/data/1176948/000162828026026286/ares-20260420.htm"
+    },
+    {
+      "ticker": "ARES",
+      "claim": "250,000 more restricted units in Jan-2025",
+      "verified": true,
+      "evidence": "Report on Form 8-K filed with the SEC on February 2, 2024. In January 2025 we granted 250,000 restricted units and in January 2026 we granted 200,000 restricted units to",
+      "source": "https://www.sec.gov/Archives/edgar/data/1176948/000162828026026286/ares-20260420.htm"
+    },
+    {
+      "ticker": "ARES",
+      "claim": "Say-on-pay held every three years",
+      "verified": true,
+      "evidence": "e outcome of this advisory vote and determined that future \"say-on-pay\" votes will be conducted every three years. The Board will re-evaluate this determination after the ne",
+      "source": "https://www.sec.gov/Archives/edgar/data/1176948/000162828026026286/ares-20260420.htm"
+    },
+    {
+      "ticker": "ARES",
+      "claim": "Controlled company",
+      "verified": true,
+      "evidence": "lease see \"Corporate Governance and Other Board Information\u2014Controlled Company Exemption.\" References to the \"Ares Operating Group\" refer",
+      "source": "https://www.sec.gov/Archives/edgar/data/1176948/000162828026026286/ares-20260420.htm"
+    },
+    {
+      "ticker": "ARES",
+      "claim": "2025 other comp = incentive-fee payments + carried-interest distributions",
+      "verified": true,
+      "evidence": "2026. (4)Includes actual cash distributions attributable to carried interest allocations of $1,536,557 and incentive fee payments of $17,212,475 and $10,500 in matching contributions under our 401(k) plan",
+      "source": "https://www.sec.gov/Archives/edgar/data/1176948/000162828026026286/ares-20260420.htm"
+    },
+    {
+      "ticker": "PANW",
+      "claim": "One-time PSU retention award granted June 2023",
+      "verified": true,
+      "evidence": "vesting or performance metrics that would overlap with the one-time performance-based restricted stock unit retention award granted to him in June 2023 \u2022100% of the equity awards granted to our NEOs in fiscal 20",
+      "source": "https://www.sec.gov/Archives/edgar/data/1327567/000130817926000432/panw-20261027.htm"
+    },
+    {
+      "ticker": "PANW",
+      "claim": "46% say-on-pay support at the 2025 meeting",
+      "verified": true,
+      "evidence": "al meeting of shareholders, we were disappointed to receive 46% support for our \"Say-on-Pay\" advisory resolution to approve our fiscal 2025 executive c",
+      "source": "https://www.sec.gov/Archives/edgar/data/1327567/000130817926000432/panw-20261027.htm"
+    },
+    {
+      "ticker": "PANW",
+      "claim": "Board commits to no overlapping one-time CEO awards",
+      "verified": true,
+      "evidence": "spects of delivering sustained shareholder value \u2022Committed not to grant our Chief Executive Officer additional one-time equity awards of any variety with vesting or performance metrics that wou",
+      "source": "https://www.sec.gov/Archives/edgar/data/1327567/000130817926000432/panw-20261027.htm"
+    },
+    {
+      "ticker": "BKNG",
+      "claim": "Peer group includes Alphabet",
+      "verified": true,
+      "evidence": "| Airbnb, Inc. | IAC/InterActiveCorp | TripAdvisor, Inc. | Alphabet Inc. | Marriott International, Inc. | Uber Technologies, Inc. |",
+      "source": "https://www.sec.gov/Archives/edgar/data/1075531/000130817926000310/bkng-20260420.htm"
+    },
+    {
+      "ticker": "BKNG",
+      "claim": "Peer group includes Microsoft",
+      "verified": true,
+      "evidence": "g Foundation, Chair of the Board of Trustees (2016 - 2019) lMicrosoft Corporation, Director (2003 - 2019), Chair of Audit Committee, Member o",
+      "source": "https://www.sec.gov/Archives/edgar/data/1075531/000130817926000310/bkng-20260420.htm"
+    },
+    {
+      "ticker": "BKNG",
+      "claim": "Peer group includes Meta",
+      "verified": true,
+      "evidence": "tional, Inc. | Uber Technologies, Inc. | Amazon.com, Inc. | Meta Platforms, Inc. | Wayfair, Inc. | eBay Inc. | Microsoft Corporation | | Ele",
+      "source": "https://www.sec.gov/Archives/edgar/data/1075531/000130817926000310/bkng-20260420.htm"
+    },
+    {
+      "ticker": "GS",
+      "claim": "$80M retention RSUs, 130,508 units at $612.99",
+      "verified": true,
+      "evidence": "| | | Key Terms of the Retention RSUs | Grant Amount | | \u220e 130,508 RSUs ($80 million grant date value), determined based on a conversion price of $612.99, the closing price per share of Common Stock on the NYSE on",
+      "source": "https://www.sec.gov/Archives/edgar/data/886982/000119312526117433/gs-20260319.htm"
+    },
+    {
+      "ticker": "GS",
+      "claim": "Five-year cliff vesting to January 2030",
+      "verified": true,
+      "evidence": "clude a dividend equivalent right | | | | | | | Vesting | | Five-year cliff vesting (will not vest until January 2030, subject to continuous service with Goldman Sachs and with",
+      "source": "https://www.sec.gov/Archives/edgar/data/886982/000119312526117433/gs-20260319.htm"
+    },
+    {
+      "ticker": "GS",
+      "claim": "Retention RSUs value in SCT = $80,000,099",
+      "verified": true,
+      "evidence": "| | | 2025 | | 2,000,000 | | 10,125,000 | | 25,287,776 | | 80,000,099 | | 105,287,875 | | 90 | | 1,478,719 | | 118,891,684 | | Da",
+      "source": "https://www.sec.gov/Archives/edgar/data/886982/000119312526117433/gs-20260319.htm"
+    },
+    {
+      "ticker": "OMC",
+      "claim": "4,000,000-share option at $77.60",
+      "verified": true,
+      "evidence": "e as CEO. On May 12, 2025, we also granted Mr. Wren a stock option to purchase 4,000,000 shares of Omnicom common stock at an exercise price equal to the per share closing price on the date of grant ($77.60). As a result, Mr. Wren will not receive any value from the",
+      "source": "https://www.sec.gov/Archives/edgar/data/29989/000121390026034811/ea0274271-02.htm"
+    },
+    {
+      "ticker": "OMC",
+      "claim": "Salary cut to $1, no other incentive pay through FY2028",
+      "verified": true,
+      "evidence": "en a special award of stock options, and Mr. Wren agreed to reduce his annual base salary to $1 and forgo any other cash or equity incentive compensation through the end of fiscal year 2028. These changes are intended to drive long-term shareholder",
+      "source": "https://www.sec.gov/Archives/edgar/data/29989/000121390026034811/ea0274271-02.htm"
+    },
+    {
+      "ticker": "AMZN",
+      "claim": "No equity award to Jassy since 2021",
+      "verified": true,
+      "evidence": "ny of the other named executive officers. \u200b \u2022 The Committee has not granted Mr. Jassy an equity award since 2021, consistent with the Committee's previous statement that th",
+      "source": "https://www.sec.gov/Archives/edgar/data/1018724/000110465926041026/tm261382-1_def14a.htm"
+    },
+    {
+      "ticker": "AMZN",
+      "claim": ">80% of the 2021 award vests 2026-2031",
+      "verified": true,
+      "evidence": "ock unit award in connection with his promotion to CEO, and more than 80% of the shares subject to that award are scheduled to vest in 2026 through 2031 (years 5 through 10). Thus, the amount actually realized un",
+      "source": "https://www.sec.gov/Archives/edgar/data/1018724/000110465926041026/tm261382-1_def14a.htm"
+    },
+    {
+      "ticker": "PLTR",
+      "claim": "Executive option on 141,000,000 Class B shares",
+      "verified": true,
+      "evidence": "ype of Award | Alexander Karp | | Executive Equity Plan | | 141,000,000 | | Stock Option | | Executive Equity Plan | | 3,900,000 | | RSU Award | | 2",
+      "source": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000019/pltr-20260423.htm"
+    },
+    {
+      "ticker": "PLTR",
+      "claim": "Executive option exercise price $11.38",
+      "verified": true,
+      "evidence": "| Stock Option | | 2010 Plan | | 7,500,000 | | RSU Award | Each Executive Option has an exercise price of $11.38 per share and a term/expiration date of August 20, 2032. Th",
+      "source": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000019/pltr-20260423.htm"
+    },
+    {
+      "ticker": "PLTR",
+      "claim": "Founders' Class F voting power up to 49.999999%",
+      "verified": true,
+      "evidence": "1, the voting power of the Class F common stock shall equal 49.999999% of the voting power of all of the outstanding shares of our",
+      "source": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000019/pltr-20260423.htm"
+    },
+    {
+      "ticker": "PLTR",
+      "claim": "PvP table shows 2024 PEO SCT total $4,630,170",
+      "verified": true,
+      "evidence": "0 | | | $ | 754.78 | | | $ | 258.38 | | | $ | 1,625,033 | | 2024 | | $ | 4,630,170 | | | $ | 6,792,542,595 | | | $ | 6,271,705 | | | $ | 217,048,600 | | | $ | 321.15",
+      "source": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000019/pltr-20260423.htm"
+    },
+    {
+      "ticker": "PLTR",
+      "claim": "SCT shows 2024 total $4,360,170 (1,101,637 + 3,258,533)",
+      "verified": true,
+      "evidence": "| | | \u2014 | | | 7,521,363 | | (3) | 8,623,000 | | | 2024 | | 1,101,637 | | | \u2014 | | | \u2014 | | | 3,258,533 | | | 4,360,170 | | | 2023 | | 1,101,637 | | | \u2014 | | | \u2014 | | | 2,396,560 |",
+      "source": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000019/pltr-20260423.htm"
+    },
+    {
+      "ticker": "COIN",
+      "claim": "2020 CEO Performance Award: option on 9,293,911 shares",
+      "verified": true,
+      "evidence": ". The 2020 CEO Performance Award consists of a 10-year term stock option to purchase 9,293,911 shares of our Class A common stock, which was equivalent to 3.8% o",
+      "source": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000045/coin-20260424.htm"
+    },
+    {
+      "ticker": "COIN",
+      "claim": "Vesting starts after ~750% and completes ~1,600% price growth",
+      "verified": true,
+      "evidence": "sts of our shareholders. The award only began vesting after approximately 750% stock price growth from the exercise price, and does not fully vest until approximately 1,600% stock price growth. The Compensation Committee does not anticipate making addi",
+      "source": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000045/coin-20260424.htm"
+    },
+    {
+      "ticker": "COIN",
+      "claim": "Controlled company (Armstrong majority voting power)",
+      "verified": true,
+      "evidence": "trols a majority of our outstanding voting power, we are a \"controlled company\" under the corporate governance rules of Nasdaq. Therefore,",
+      "source": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000045/coin-20260424.htm"
+    },
+    {
+      "ticker": "COIN",
+      "claim": "2025 security $7.6M and aircraft $1.1M",
+      "verified": true,
+      "evidence": "Awards Table\" below. (3)The amount reported represents (i) $7,643,834 in costs related to personal security measures for Mr. Armstrong in 2025 and (ii) personal air travel expenses in the amount of $1,069,166 in 2025, which represents the incremental cost to Coinbase",
+      "source": "https://www.sec.gov/Archives/edgar/data/1679788/000167978826000045/coin-20260424.htm"
+    }
+  ],
+  "tsr": {
+    "n_company_years_compared": 2425,
+    "median_abs_gap_pts": 0.04438200854508523,
+    "share_within_1pt": 0.8165024630541872,
+    "n_companies_flagged": 69,
+    "flag_reasons": {
+      "stale_base": 44,
+      "mixed/other": 24,
+      "misdated": 1
+    },
+    "tri_vs_adjclose_median_abs_diff_5y": 0.0002441578134810829
+  },
+  "sop_crosscheck": {
+    "n_compared": 295,
+    "n_agree": 274,
+    "median_gap_pts": 0.09,
+    "disagreements": [
+      {
+        "ticker": "ALLE",
+        "meeting": "2024-06-06",
+        "ours_votes_cast": 84.88,
+        "ours_for_against": 84.98,
+        "company_stated": 94.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 9.02,
+        "agree": false
+      },
+      {
+        "ticker": "DHR",
+        "meeting": "2025-05-06",
+        "ours_votes_cast": 94.35,
+        "ours_for_against": 94.81,
+        "company_stated": 93.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 1.35,
+        "agree": false
+      },
+      {
+        "ticker": "EQIX",
+        "meeting": "2025-05-21",
+        "ours_votes_cast": 88.91,
+        "ours_for_against": 88.95,
+        "company_stated": 99.7,
+        "stated_is_lower_bound": false,
+        "gap_pts": 10.75,
+        "agree": false
+      },
+      {
+        "ticker": "ESS",
+        "meeting": "2025-05-13",
+        "ours_votes_cast": 92.75,
+        "ours_for_against": 93.03,
+        "company_stated": 95.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 1.97,
+        "agree": false
+      },
+      {
+        "ticker": "EXPE",
+        "meeting": "2025-06-03",
+        "ours_votes_cast": 75.3,
+        "ours_for_against": 75.34,
+        "company_stated": 96.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 20.66,
+        "agree": false
+      },
+      {
+        "ticker": "FERG",
+        "meeting": "2025-12-03",
+        "ours_votes_cast": 91.13,
+        "ours_for_against": 91.6,
+        "company_stated": 98.5,
+        "stated_is_lower_bound": false,
+        "gap_pts": 6.9,
+        "agree": false
+      },
+      {
+        "ticker": "HPE",
+        "meeting": "2025-04-02",
+        "ours_votes_cast": 89.2,
+        "ours_for_against": 89.46,
+        "company_stated": 90.9,
+        "stated_is_lower_bound": false,
+        "gap_pts": 1.44,
+        "agree": false
+      },
+      {
+        "ticker": "MGM",
+        "meeting": "2025-05-07",
+        "ours_votes_cast": 96.48,
+        "ours_for_against": 97.0,
+        "company_stated": 89.3,
+        "stated_is_lower_bound": false,
+        "gap_pts": 7.18,
+        "agree": false
+      },
+      {
+        "ticker": "MOS",
+        "meeting": "2025-05-29",
+        "ours_votes_cast": 99.12,
+        "ours_for_against": 99.29,
+        "company_stated": 93.5,
+        "stated_is_lower_bound": false,
+        "gap_pts": 5.62,
+        "agree": false
+      },
+      {
+        "ticker": "MRK",
+        "meeting": "2024-05-28",
+        "ours_votes_cast": 93.0,
+        "ours_for_against": 93.5,
+        "company_stated": 91.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 2.0,
+        "agree": false
+      },
+      {
+        "ticker": "PTC",
+        "meeting": "2025-02-12",
+        "ours_votes_cast": 86.23,
+        "ours_for_against": 89.76,
+        "company_stated": 93.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 3.24,
+        "agree": false
+      },
+      {
+        "ticker": "RVTY",
+        "meeting": "2025-04-22",
+        "ours_votes_cast": 95.7,
+        "ours_for_against": 95.76,
+        "company_stated": 91.7,
+        "stated_is_lower_bound": false,
+        "gap_pts": 4.0,
+        "agree": false
+      },
+      {
+        "ticker": "SPGI",
+        "meeting": "2025-05-07",
+        "ours_votes_cast": 68.65,
+        "ours_for_against": 68.83,
+        "company_stated": 93.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 24.17,
+        "agree": false
+      },
+      {
+        "ticker": "STX",
+        "meeting": "2025-10-25",
+        "ours_votes_cast": 94.88,
+        "ours_for_against": 95.37,
+        "company_stated": 75.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 19.88,
+        "agree": false
+      },
+      {
+        "ticker": "SYF",
+        "meeting": "2024-06-11",
+        "ours_votes_cast": 61.14,
+        "ours_for_against": 61.32,
+        "company_stated": 63.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 1.68,
+        "agree": false
+      },
+      {
+        "ticker": "T",
+        "meeting": "2025-05-15",
+        "ours_votes_cast": 93.39,
+        "ours_for_against": 93.67,
+        "company_stated": 90.7,
+        "stated_is_lower_bound": false,
+        "gap_pts": 2.69,
+        "agree": false
+      },
+      {
+        "ticker": "UAL",
+        "meeting": "2024-05-22",
+        "ours_votes_cast": 95.91,
+        "ours_for_against": 96.18,
+        "company_stated": 86.3,
+        "stated_is_lower_bound": false,
+        "gap_pts": 9.61,
+        "agree": false
+      },
+      {
+        "ticker": "UDR",
+        "meeting": "2025-05-15",
+        "ours_votes_cast": 96.23,
+        "ours_for_against": 99.22,
+        "company_stated": 93.38,
+        "stated_is_lower_bound": false,
+        "gap_pts": 2.85,
+        "agree": false
+      },
+      {
+        "ticker": "VTR",
+        "meeting": "2024-05-14",
+        "ours_votes_cast": 86.31,
+        "ours_for_against": 86.42,
+        "company_stated": 88.0,
+        "stated_is_lower_bound": true,
+        "gap_pts": 1.58,
+        "agree": false
+      },
+      {
+        "ticker": "WDAY",
+        "meeting": "2025-06-04",
+        "ours_votes_cast": 99.08,
+        "ours_for_against": 99.18,
+        "company_stated": 75.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 24.08,
+        "agree": false
+      },
+      {
+        "ticker": "WELL",
+        "meeting": "2025-05-22",
+        "ours_votes_cast": 98.99,
+        "ours_for_against": 99.03,
+        "company_stated": 94.0,
+        "stated_is_lower_bound": false,
+        "gap_pts": 4.99,
+        "agree": false
+      }
+    ]
+  }
+}

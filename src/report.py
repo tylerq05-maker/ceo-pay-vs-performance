@@ -225,6 +225,20 @@ def build_markdown() -> str:
                 f"({c['pay_vs_predicted_pct']:+.0f}%, rank {int(c['resid_rank'])} of {o['n']}); TSR "
                 f"{100 * c['tsr_3y_ann']:+.0f}%/yr; avg CAP {M(c['cap_avg_3y'])}.*")
 
+    rep_bullet = ""
+    if REP:
+        F, S = REP["full"], REP["sample"]
+        rep_bullet = (f"- **The pattern holds on the full S&P 500.** Re-run on every index member with data "
+                      f"(n = {F['n_model_3y']}): TSR explains {100 * F['sct_r2_simple']:.1f}% of granted pay and "
+                      f"{100 * F['cap_r2_simple']:.0f}% of realised pay; pay ranks with size {F['rho_size']:.2f} vs TSR "
+                      f"{F['rho_tsr']:.2f}.")
+        if F["sct_p"] < 0.05:
+            rep_bullet += (f" With five times the companies, a small granted-pay link becomes detectable "
+                           f"({F['sct_effect']:+.1f}% per 10 points, {pv(F['sct_p'])}). It lies inside the sample's 95% "
+                           f"interval ({S['sct_ci'][0]:+.0f}% to {S['sct_ci'][1]:+.0f}%), so the precise conclusion is that "
+                           f"granted pay responds weakly to returns, not that it ignores them (appendix).")
+        else:
+            rep_bullet += f" Granted pay per 10 points of TSR: {F['sct_effect']:+.1f}% ({pv(F['sct_p'])}) (appendix)."
     appendix_md = ""
     if REP:
         a, b = REP["sample"], REP["full"]
@@ -243,7 +257,7 @@ def build_markdown() -> str:
             row("Excess pay → later abnormal return (rank IC, cohorts A / B)", f"{a['strategy_A_ic']:+.2f} / {a['strategy_B_ic']:+.2f}", f"{b['strategy_A_ic']:+.2f} / {b['strategy_B_ic']:+.2f}"),
             row("Long-short backtest CAPM alpha per year (t)", f"{100 * a['bt_alpha']:+.1f}% ({a['bt_alpha_t']:.2f})", f"{100 * b['bt_alpha']:+.1f}% ({b['bt_alpha_t']:.2f})"),
             row("Companies with proxy TSR errors > 10 pts", a["tsr_flagged"], b["tsr_flagged"]),
-            row("XBRL pay found verbatim in the proxy", a["val_source_match"], b["val_source_match"]),
+            row("XBRL pay found in the proxy (verbatim or within the filer's rounding)", a["val_source_match"], b["val_source_match"]),
             row("Say-on-pay parse agrees with company-reported figure", a.get("val_sop_agree", "n/a"), b.get("val_sop_agree", "n/a")),
         ]
         appendix_md = (
@@ -256,7 +270,11 @@ def build_markdown() -> str:
             "and pending mergers).\n\n"
             "| Measure | 100-company sample | Full S&P 500 |\n|---|---|---|\n" + "\n".join(rows_) +
             f"\n\nFull-index top residuals: above model {', '.join(b['top_overpaid'])}; below model {', '.join(b['top_underpaid'])}. "
-            "The case studies above cover the sample; the full-index list is shown for transparency.\n\n"
+            "The case studies above cover the sample; the full-index list is shown for transparency. Tesla's figure is "
+            "Musk's 2025 award ($158.4B in the Summary Compensation Table) averaged with a $0 year; Devon Energy, which tagged "
+            "its pay in thousands, was rescaled (ASSUMPTIONS F5–F7). Say-on-pay disagreements on the full index were "
+            "spot-checked by hand: for S&P Global, Seagate and Expedia our parse matches the company's own words and the "
+            "checker had read a different year's figure; Workday (dual-class shares) is unresolved.\n\n"
             '<img class="half" src="../charts/09_replication.png" alt="Replication chart">'
         )
 
@@ -264,20 +282,20 @@ def build_markdown() -> str:
     md = f"""
 <div class="masthead">
 <div class="kicker">Equity Research · Governance &amp; Compensation · {today}</div>
-<h1>Paid for Size, Not for Returns</h1>
+<h1>Paid for Size, Barely for Returns</h1>
 <div class="dek">Do S&amp;P 500 CEOs get paid for shareholder returns? Evidence from {D['n_companies']} companies' SEC pay-versus-performance disclosures</div>
 <div class="byline">Tyler Quezada · Sector-stratified sample of {D['n_companies']} S&amp;P 500 constituents · {D['n_company_years']} CEO-years (FY2021–FY2026)</div>
 </div>
 
 ## Executive summary
 
-- **Granted pay does not track returns.** Across {o['n']} companies, annualised 3-year TSR explains **{100 * s1['r2']:.1f}%** of the variation in the pay boards award (Summary Compensation Table). Each extra 10 points of annual TSR is associated with just **{s3['pct_pay_per_10pp_tsr']:+.1f}%** more pay after size and sector controls ({pv(s3['coefs']['tsr_pp_w']['p'])}). Within companies, pay does not respond to the same year's return either ({pv(pan['sct_same_year']['p'])}).
+- **Granted pay barely tracks returns.** Across {o['n']} companies, annualised 3-year TSR explains **{100 * s1['r2']:.1f}%** of the variation in the pay boards award (Summary Compensation Table). Each extra 10 points of annual TSR is associated with just **{s3['pct_pay_per_10pp_tsr']:+.1f}%** more pay after size and sector controls ({pv(s3['coefs']['tsr_pp_w']['p'])}). Within companies, pay does not respond to the same year's return either ({pv(pan['sct_same_year']['p'])}).
 - **Realised pay does, largely by construction.** Compensation actually paid (CAP) marks equity to market; TSR explains **{100 * c1['r2']:.0f}%** of its variation and +10 points of TSR goes with roughly **{c3['pct_pay_per_10pp_tsr']:+.0f}%** more CAP ({pv(c3['coefs']['tsr_pp_w']['p'])}). Alignment comes from the stock CEOs already hold, not from boards adjusting new awards.
 - **Size matters more than performance.** Granted pay ranks with company size (Spearman ρ = {C['3y']['sct_vs_mcap']['spearman_rho']:.2f}) far more than with TSR (ρ = {C['3y']['sct_vs_tsr']['spearman_rho']:.2f}). A weak link to TSR exists once four founder/lump-grant companies are set aside ({excl}): +10 points of TSR then means **{xn['pct_pay_per_10pp_tsr']:+.1f}%** pay ({pv(xn['coefs']['tsr_pp_w']['p'])}), versus **{100 * (2 ** xn['size_elasticity'] - 1):+.0f}%** for a doubling of market cap.
 - **The biggest "overpaid" outliers were strong performers.** {', '.join(x['ticker'] for x in over)} were paid {over[-1]['pay_vs_predicted_pct']:.0f}–{over[0]['pay_vs_predicted_pct']:.0f}% above model, but all returned {min(over_tsr):.0f}–{max(over_tsr):.0f}%/yr. One-time or structural awards explain most of the gap. The "underpaid" end is dominated by founders and lumpy multi-year grants whose *realised* pay is enormous ({', '.join(under_founder)}), plus {len(under_ceo_change)} CEO transitions ({', '.join(under_ceo_change)}).
 - **Shareholders notice.** Companies paying further above model receive lower say-on-pay support (ρ = {SP['corr_resid_support']['spearman_rho']:.2f}, {pv(SP['corr_resid_support']['spearman_p'])}); TSR itself is unrelated to support. {len(failed)} votes failed outright ({', '.join(failed)}).
 - **Read proxy TSR with care.** {TQ['n_companies_flagged']} of {D['n_companies']} proxies contain TSR figures that miss market data by more than 10 points, mostly because earlier years were never rebased when the table rolled forward.
-{(f"- **The findings replicate on the full S&P 500.** Re-run on every index member with data (n = {REP['full']['n_model_3y']}): TSR explains {100 * REP['full']['sct_r2_simple']:.1f}% of granted pay ({REP['full']['sct_effect']:+.1f}% per 10 points, {pv(REP['full']['sct_p'])}) and {100 * REP['full']['cap_r2_simple']:.0f}% of realised pay; pay ranks with size {REP['full']['rho_size']:.2f} vs TSR {REP['full']['rho_tsr']:.2f} (appendix)." if REP else "")}
+{rep_bullet}
 
 ## Methodology
 
@@ -424,6 +442,26 @@ def build_readme() -> str:
     mA, mB = stA["measures"]["capm_abnormal"], stB["measures"]["capm_abnormal"]
     V = json.loads((config.OUTPUT / "validation" / "validation.json").read_text())
     nclaims = f"{sum(c['verified'] for c in V['claims'])}/{len(V['claims'])}"
+    qc = (config.ROOT / "docs" / "AI_USAGE_AND_QC.md").read_text()
+    n_issues = len(re.findall(r"^\| \d+ \|", qc, re.M))
+    bt_line = rep_line = ""
+    if "backtest" in r:
+        B = r["backtest"]
+        L = B["portfolios"]["Long underpaid / short overpaid"]
+        bt_line = (f"9. **A long-short backtest earned no alpha.** Long the most-underpaid fifth, short the most-overpaid, "
+                   f"rebalanced each 30 Sept ({B['start']} to {B['end']}): total {100 * L['total_return']:+.1f}%, Sharpe "
+                   f"{L['sharpe']:.2f}, CAPM alpha {100 * L['alpha_ann']:+.1f}%/yr (t = {L['alpha_t']:.2f}, Newey-West). "
+                   f"The raw loss is beta ({B['portfolios']['Q5 most overpaid']['beta']:.2f} vs "
+                   f"{B['portfolios']['Q1 most underpaid']['beta']:.2f}).\n")
+    rp = config.OUTPUT_SAMPLE / "replication.json"
+    if rp.exists():
+        F = json.loads(rp.read_text())["full"]
+        rep_line = (f"10. **The pattern holds on the full S&P 500** (n = {F['n_model_3y']}): TSR explains "
+                    f"{100 * F['sct_r2_simple']:.1f}% of granted pay and {100 * F['cap_r2_simple']:.0f}% of realised pay; "
+                    f"with five times the companies a small granted-pay link is detectable "
+                    f"({F['sct_effect']:+.1f}% per 10 points, p = {F['sct_p']:.3f}). Say-on-pay vs excess pay: "
+                    f"ρ = {F['sop_rho']:.2f}; strategy IC {F['strategy_A_ic']:+.2f} / {F['strategy_B_ic']:+.2f}; backtest alpha "
+                    f"{100 * F['bt_alpha']:+.1f}%/yr (t = {F['bt_alpha_t']:.2f}). See the report appendix.\n")
     return f"""# CEO Pay vs. Performance: Do S&P 500 CEOs Get Paid for Shareholder Returns?
 
 An end-to-end equity-research project: it pulls CEO pay from SEC pay-versus-performance XBRL filings,
@@ -436,7 +474,7 @@ returns, and investigates the biggest outliers with primary sources.
 
 *{D['n_companies']}-company, sector-stratified S&P 500 sample; {D['n_company_years']} CEO-years; primary window = each company's latest 3 fiscal years (mostly FY2023–FY2025).*
 
-1. **Granted pay does not track returns.** 3-year annualised TSR explains **{100 * s1['r2']:.1f}%** of the variation in the
+1. **Granted pay barely tracks returns.** 3-year annualised TSR explains **{100 * s1['r2']:.1f}%** of the variation in the
    pay boards award (Summary Compensation Table). After size and sector controls, +10 points of annual TSR goes with
    **{s3['pct_pay_per_10pp_tsr']:+.1f}%** pay (p = {s3['coefs']['tsr_pp_w']['p']:.2f}). Within companies, pay does not move with the same year's
    TSR (p = {r['panel']['sct_same_year']['p']:.2f}).
@@ -459,7 +497,7 @@ returns, and investigates the biggest outliers with primary sources.
 8. **Excess pay did not predict future returns.** Point-in-time quintiles formed {stA['formation']} and {stB['formation']}: rank correlation
    with later CAPM abnormal returns {mA['rank_ic']['spearman_rho']:+.2f} and {mB['rank_ic']['spearman_rho']:+.2f} (p = {mA['rank_ic']['spearman_p']:.2f}, {mB['rank_ic']['spearman_p']:.2f}).
    A raw-mean "signal" of {100 * mA['q5_minus_q1']:+.0f} points came from one stock ({mA['top_movers'][0]['ticker']}).
-
+{bt_line}{rep_line}
 **How we know it is right:** XBRL pay found verbatim in the proxy for {V['source_match']['sct_found']}/{V['source_match']['n']} companies,
 {V['mix_reconciliation']['xbrl_match_pass']}/{V['mix_reconciliation']['rows']} pay-mix rows reconcile, {nclaims} case-study facts verified in the filings,
 permutation test p = {V['permutation']['sct']['perm_p_two_sided']:.2f} for granted pay, numpy re-estimation identical.
@@ -480,7 +518,7 @@ When the page is opened as a claude.ai Artifact, an **AI analyst** answers quest
 | Document | Purpose |
 |---|---|
 | [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) | What we built, the problem, how it works, AI use, output, validity, why it matters |
-| [`docs/AI_USAGE_AND_QC.md`](docs/AI_USAGE_AND_QC.md) | How AI was used, the QC stack, and 18 real errors caught |
+| [`docs/AI_USAGE_AND_QC.md`](docs/AI_USAGE_AND_QC.md) | How AI was used, the QC stack, and {n_issues} real errors caught |
 | [`docs/DEFENSE_GUIDE.md`](docs/DEFENSE_GUIDE.md) | 60-second pitch, every component explained, expected questions with answers |
 | [`docs/CHECKIN_1_GAME_PLAN.md`](docs/CHECKIN_1_GAME_PLAN.md) / [`CHECKIN_2_PROGRESS.md`](docs/CHECKIN_2_PROGRESS.md) | Talking points for the two check-ins |
 

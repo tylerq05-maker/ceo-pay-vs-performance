@@ -8,7 +8,7 @@
 - **Verified dataset.** CEO pay and "compensation actually paid" come from XBRL. The pay mix comes from the Summary Compensation Table and reconciles 301 of 301 rows. TSR is rebuilt independently. Say-on-pay covers 247 meetings, and 57 of 57 vote results we could compare match what the companies say about themselves.
 - **Statistics.** Regressions over 1-, 3- and 5-year windows with robustness checks, outliers from residuals, a within-company panel, pay mix, and say-on-pay.
 - **Strategy test and backtest.** Point-in-time portfolios with CAPM abnormal returns, plus a daily long-short backtest with Sharpe ratio, drawdown and CAPM alpha (Newey-West t-stats).
-- **Validation suite.** 9 automated checks plus 12 unit tests.
+- **Validation suite.** 9 automated checks plus 15 unit tests.
 - **Full S&P 500 replication.** The same code rerun on all 500 index members.
 - **Deliverables.** Report, charts, notebook, an interactive screener with a fact-checked AI analyst, and the deck.
 

@@ -52,10 +52,17 @@ COMP_PAT = re.compile(
 # ... must sit near an advisory cue (either side).
 ADVISORY = re.compile(r"advisory|non-binding|say[- ]on[- ]pay|approve", re.I)
 DELIM = re.compile(
-    r"\(\s*(?:\d{1,2}|[ivx]{1,5})\s*\)"                         # (3)  (iii)
+    r"\(\s*(?:\d{1,2}|[a-h]|[ivx]{1,5})\s*\)"                  # (3)  (b)  (iii)
+    r"|\bElection of (?:the )?Directors?\b"                         # director-election table
     r"|\b(?:Proposal|Item|Matter)\s*(?:No\.?\s*)?(\d{1,2})\b"      # Proposal 4
     r"|(?:^|\n|\|)\s*\d{1,2}\s*[.)]\s*[A-Z]",                      # 4. Approval ...
     re.I | re.M)
+# Counts that are not votes on the proposal: broker non-votes stated in prose
+# ("there were 25,755,179 broker non-votes") and shares present at the meeting.
+NON_VOTE = re.compile(
+    r"broker non-votes?\s+(?:was|were|totall?ed|amounted to)\s+" + NUM                 # "... broker non-votes was N"
+    + r"|(?:there were|were|was)\s+" + NUM + r"\s+(?:shares\s+(?:that\s+were\s+)?)?broker non-votes?"  # "there were N broker non-votes"
+    + r"|(?:shares represented|shares present)[^|\n]{0,80}?" + NUM, re.I)              # "Total shares represented ...: N"
 PROP_NO = re.compile(r"(?:Proposal|Item|Matter)\s*(?:No\.?\s*)?(\d{1,2})\b[^\n]{0,120}$", re.I)
 
 
@@ -94,7 +101,7 @@ def parse_say_on_pay(text: str) -> dict | None:
         # say-on-pay results, even when the word "frequency" never appears
         if re.search(r"one year\W+two years|1 year\W+2 years|every (?:one|1|two|2|three|3) years?", snippet, re.I):
             continue
-        nums = [int(n.replace(",", "")) for n in re.findall(NUM, snippet)]
+        nums = [int(n.replace(",", "")) for n in re.findall(NUM, NON_VOTE.sub(" ", snippet))]
         nums = [n for n in nums if n >= 1000 and not (1990 <= n <= 2035)]
         if len(nums) < 3:
             continue

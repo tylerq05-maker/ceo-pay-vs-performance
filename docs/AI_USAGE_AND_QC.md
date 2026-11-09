@@ -29,10 +29,10 @@ Each layer catches a different kind of error. All of them are automated and re-r
 | Cross-implementation | Is the regression code right? | Re-fit with plain numpy least squares | Coefficients identical to ~1e-16 |
 | Statistical robustness | Is the result real or noise? | Permutation test (2,000 shuffles), bootstrap CI, leave-one-out, 8 alternative specifications | Granted-pay null and CAP effect both hold everywhere |
 | Claim verification | Did the AI invent a fact? | Every filing fact in the case studies is regex-matched in the cited SEC document | 27/27 verified |
-| Unit tests | Do parsers handle known edge cases? | 12 known-answer tests built from real layouts | 12/12 pass |
+| Unit tests | Do parsers handle known edge cases? | 15 known-answer tests built from real layouts | 15/15 pass |
 | Independent self-reports | Is our vote data right? | Our 8-K parse is compared with the support each company states in its next proxy | 57/57 agree (median gap 0.11 pts); found one real bug (#19) |
 | Replication | Does it hold beyond the sample? | Same pipeline re-run on the full S&P 500 | See report appendix |
-| Human review | Does it make sense? | Every chart was rendered and inspected, and every paragraph proofread against the data | 23 issues logged (below) |
+| Human review | Does it make sense? | Every chart was rendered and inspected, and every paragraph proofread against the data | 27 issues logged (below) |
 
 ## 3. Errors and weak results we caught
 
@@ -61,8 +61,12 @@ This is the real log from building the project. Most were caught because a numbe
 | 19 | Say-on-pay | Solventum's say-on-**frequency** vote ("One Year / Two Years / Three Years") was recorded as a 99% say-on-pay result | A new cross-check against the support each company reports in its own proxy (Solventum says about 85%) | The parser now rejects frequency tables, even when the word "frequency" never appears. Unit test added |
 | 20 | Cross-checker | The first cross-checker raised 5 false alarms: it read a 10-year average, a "more than 90%" bound, another proposal's 93%, and board statistics | Read every flagged sentence in the filing | Only percentages described as vote support in the same sentence count. Result: 57/57 agree |
 | 21 | Market data | Yahoo's quote service started refusing requests (HTTP 401) mid-run, and the code was about to cache "no market cap" for 400 companies | Coverage audit of the full-index run | Empty responses are never cached. The full index uses SEC-reported shares × price, which agrees with Yahoo within 10% for 97 of 100 sample companies |
-| 22 | Full-index parsing | J.B. Hunt tags only one of the two CEO-pay concepts, which crashed the parser | Error log of the 500-company run | Missing concepts are now handled; J.B. Hunt enters the realised-pay analysis only |
+| 22 | Full-index parsing | J.B. Hunt tags only one of the two CEO-pay concepts on the CEO, which crashed the parser | Error log of the 500-company run | Missing concepts are now handled, and the undimensioned figure fills a single-CEO year (ASSUMPTIONS F6) |
 | 23 | Backtest | The long-short portfolio "lost 15%", which looked like the signal working in reverse | CAPM regression | Explained by beta: the overpaid fifth has beta 1.25 vs 0.85. Alpha is about zero (t = −0.22) |
+| 24 | Full-index data | Devon Energy's CEO "earned $14,830" | Implausible-value check on the full-index outliers | Devon tagged the printed thousands. Thousands-scale filings are now detected and rescaled (ASSUMPTIONS F5), with a unit test |
+| 25 | Full-index data | Tesla's 3-year average CEO pay came out at $158B, Musk's entire 2025 award | Read Tesla's Summary Compensation Table: 2021–24 show "—" ($0), and those cells were left untagged | A CAP-only year is now treated as $0 granted pay (ASSUMPTIONS F7), with a unit test |
+| 26 | Full-index say-on-pay | Con Edison, Invesco and Raymond James showed 10–18% support; Everest 51% | Check 9 on the full index (cross-check against each company's own proxy) | The parser read broker non-vote counts and a director table as votes. Fixed, with 2 new unit tests; the sample is unchanged. Full-index agreement rose from 267/297 to 274/295. A spot-check of the remaining gaps found the checker reading a 10-year range or a prior year's figure (S&P Global, Seagate, Expedia: our parse matches the company's own words). Workday (dual-class, company states 86%, we parse 99%) is unresolved |
+| 27 | Validation | Source match flagged Casey's, Northrop, Tesla and Xylem | Read the filings | They tagged rounded figures (Casey's: $14,741,000 tagged, $14,741,268 printed). The check now accepts a printed figure within the filer's own rounding and reports verbatim and rounded matches separately |
 
 ## 4. What we could not fully verify
 

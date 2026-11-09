@@ -102,7 +102,8 @@ def build() -> tuple[pd.DataFrame, pd.DataFrame]:
 
     # Derived variables -----------------------------------------------------
     for n in config.WINDOWS:
-        m[f"ln_sct_avg_{n}y"] = np.log(m[f"sct_avg_{n}y"])
+        # A $0 average (no new pay in the window) has no log; it drops out of the log-pay models.
+        m[f"ln_sct_avg_{n}y"] = np.log(m[f"sct_avg_{n}y"].where(m[f"sct_avg_{n}y"] > 0))
         m[f"ln_mcap_start_{n}y"] = np.log(m[f"mcap_start_{n}y"])
         m[f"rel_tsr_{n}y"] = m[f"tsr_{n}y"] - m[f"peer_tsr_{n}y"]
         m[f"cap_to_sct_{n}y"] = m[f"cap_avg_{n}y"] / m[f"sct_avg_{n}y"]

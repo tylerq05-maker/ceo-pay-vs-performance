@@ -1,0 +1,149 @@
+{
+  "sample": {
+    "n_universe": 100,
+    "n_pvp_xbrl": 100,
+    "n_sct_matched": 100,
+    "n_model_3y": 99,
+    "sct_r2_simple": 0.004509577670151699,
+    "cap_r2_simple": 0.4636631921423229,
+    "sct_effect": 1.7980212429499876,
+    "sct_p": 0.6855093014290535,
+    "sct_ci": [
+      -6.614067666246093,
+      10.967860683171637
+    ],
+    "cap_effect": 58.07936327477115,
+    "cap_p": 1.4540571637483342e-05,
+    "cap_ci": [
+      28.519712966673016,
+      94.43775990876269
+    ],
+    "rho_size": 0.5537291280148423,
+    "rho_tsr": 0.147907183896434,
+    "rho_tsr_p": 0.14401096276193964,
+    "size_elasticity": 0.1518196596664577,
+    "size_p": 0.36564038445826963,
+    "sct_5y_effect": 13.597277501146522,
+    "sct_5y_p": 0.047474582306074625,
+    "excl_no_equity_n_excluded": 4,
+    "excl_no_equity_effect": 11.648248865714962,
+    "excl_no_equity_p": 0.001013284553440692,
+    "panel_sct_p": 0.809935253565562,
+    "panel_cap_effect": 56.71027749294024,
+    "sop_rho": -0.29928498467824316,
+    "sop_p": 0.004383622640867295,
+    "sop_meetings": 247,
+    "sop_failed": 3,
+    "tsr_flagged": 12,
+    "tsr_median_gap": 0.06606376378631751,
+    "top_overpaid": [
+      "ARES",
+      "PANW",
+      "BKNG",
+      "GS",
+      "WSM"
+    ],
+    "top_underpaid": [
+      "AMZN",
+      "PLTR",
+      "COIN",
+      "CINF",
+      "KDP"
+    ],
+    "strategy_A_n": 94,
+    "strategy_A_ic": 0.028732435068453563,
+    "strategy_A_ic_p": 0.7833924696010653,
+    "strategy_B_n": 99,
+    "strategy_B_ic": 0.02712430426716141,
+    "strategy_B_ic_p": 0.7898504077111165,
+    "bt_alpha": -0.017842542403691517,
+    "bt_alpha_t": -0.21974974066914665,
+    "bt_sharpe": -0.48759529449082983,
+    "bt_beta": -0.4054116575096023,
+    "bt_n_per_fifth": 20,
+    "val_source_match": "100/100",
+    "val_mix": "301/301",
+    "val_perm_p_sct": 0.518,
+    "val_sop_agree": "57/57"
+  },
+  "full": {
+    "n_universe": 500,
+    "n_pvp_xbrl": 492,
+    "n_sct_matched": 476,
+    "n_model_3y": 481,
+    "sct_r2_simple": 0.009033938292729138,
+    "cap_r2_simple": 0.42261794329020386,
+    "sct_effect": 6.051388509218203,
+    "sct_p": 0.02781282886883798,
+    "sct_ci": [
+      0.6429032463255657,
+      11.750522311604295
+    ],
+    "cap_effect": 39.50195448029579,
+    "cap_p": 6.821974548338505e-36,
+    "cap_ci": [
+      32.41082674494089,
+      46.9728403804115
+    ],
+    "rho_size": 0.47139237066622947,
+    "rho_tsr": 0.1571248519469802,
+    "rho_tsr_p": 0.0005430775917199281,
+    "size_elasticity": 0.278917657305314,
+    "size_p": 1.746849228207699e-05,
+    "sct_5y_effect": 15.147622368229596,
+    "sct_5y_p": 0.026751318050913377,
+    "excl_no_equity_n_excluded": 30,
+    "excl_no_equity_effect": 8.538493786409163,
+    "excl_no_equity_p": 0.0001449254903070635,
+    "panel_sct_p": 0.48631405227740243,
+    "panel_cap_effect": 49.33786598683918,
+    "sop_rho": -0.3047893199833125,
+    "sop_p": 1.4492148986186766e-10,
+    "sop_meetings": 1208,
+    "sop_failed": 20,
+    "tsr_flagged": 69,
+    "tsr_median_gap": 0.04438200854508523,
+    "top_overpaid": [
+      "TSLA",
+      "WELL",
+      "ARES",
+      "ORCL",
+      "CRWD"
+    ],
+    "top_underpaid": [
+      "XYZ",
+      "ABNB",
+      "TTWO",
+      "DASH",
+      "AMZN"
+    ],
+    "strategy_A_n": 446,
+    "strategy_A_ic": 0.011731558503085516,
+    "strategy_A_ic_p": 0.8048551107425617,
+    "strategy_B_n": 477,
+    "strategy_B_ic": 0.024307852137460333,
+    "strategy_B_ic_p": 0.5964053460722988,
+    "bt_alpha": -0.0039333482760998875,
+    "bt_alpha_t": -0.08635737385262061,
+    "bt_sharpe": -0.17515877976107996,
+    "bt_beta": -0.06786449643251007,
+    "bt_n_per_fifth": 96,
+    "val_source_match": "492/492",
+    "val_mix": "1410/1410",
+    "val_perm_p_sct": 0.0075,
+    "val_sop_agree": "274/295",
+    "top_overpaid_in_sample": [
+      "ARES"
+    ]
+  },
+  "size_check": {
+    "n": 100,
+    "within_10pct": 97,
+    "corr_log": 0.9918909099089667,
+    "outside": [
+      "KMB",
+      "ARES",
+      "SWKS"
+    ]
+  }
+}

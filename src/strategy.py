@@ -102,6 +102,7 @@ def build_cohort(name: str, spec: dict, pvp: pd.DataFrame, sample: pd.DataFrame,
             "beta": _beta(tri, spy, spec["formation"]),
         })
     d = pd.DataFrame(rows).dropna(subset=["sct_avg", "tsr_window", "mcap_start", "fwd_ret"])
+    d = d[d["sct_avg"] > 0]  # $0 pay windows (Tesla FY2021-23) have no log
     # Residual "excess pay" signal from a model fitted on this window only
     d["ln_pay"] = np.log(d["sct_avg"])
     d["ln_mcap"] = np.log(d["mcap_start"])

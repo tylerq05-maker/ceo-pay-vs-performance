@@ -96,7 +96,7 @@ def chart(s: dict, f: dict) -> None:
             ax.text(xi, vv + 1, f"{vv:.1f}%" if vv < 10 else f"{vv:.0f}%", ha="center", fontsize=9, color=ch.INK_2)
     ax.set_xticks(x, ["Granted pay", "Realised pay"])
     ax.set_title("Share of pay explained by TSR (R²)")
-    ax.yaxis.set_major_formatter(ch.mticker.PercentFormatter())
+    ax.yaxis.set_major_formatter(ch.mticker.PercentFormatter(decimals=0))
     ax.grid(axis="x", visible=False)
     ax.legend(loc="upper left")
     # 2. Effect with CI
@@ -110,6 +110,7 @@ def chart(s: dict, f: dict) -> None:
     ax.set_xticks([0, 1], ["Sample", "Full index"])
     ax.set_xlim(-0.5, 1.6)
     ax.set_title("Granted pay per +10 pts TSR (95% CI)")
+    ax.yaxis.set_major_locator(ch.mticker.MultipleLocator(5))
     ax.yaxis.set_major_formatter(ch.mticker.FuncFormatter(lambda v, _: f"{v:+.0f}%" if v else "0"))
     ax.grid(axis="x", visible=False)
     # 3. Rank correlations
@@ -122,8 +123,10 @@ def chart(s: dict, f: dict) -> None:
     ax.set_xticks(x, ["with company size", "with 3-yr TSR"])
     ax.set_title("Rank correlation of granted pay")
     ax.grid(axis="x", visible=False)
-    fig.suptitle("The findings replicate on the full S&P 500", x=0.01, ha="left", fontsize=15,
-                 fontweight="semibold", y=1.07)
+    holds = f["sct_r2_simple"] < 0.05 and f["cap_r2_simple"] > 0.3
+    title = ("The pattern holds on the full S&P 500: TSR explains little of granted pay, much of realised pay"
+             if holds else "Sample vs full S&P 500")
+    fig.suptitle(title, x=0.01, ha="left", fontsize=15, fontweight="semibold", y=1.07)
     fig.text(0.01, 0.995, f"Same pipeline, same model: the 100-company stratified sample vs every S&P 500 company with data "
                           f"({f['n_pvp_xbrl']} of {f['n_universe']} have pay-versus-performance XBRL).",
              fontsize=10, color=ch.INK_2, ha="left")

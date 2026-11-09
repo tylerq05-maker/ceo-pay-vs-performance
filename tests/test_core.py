@@ -195,3 +195,57 @@ its named executive officers (every 1 year, 2 years, or 3 years).</p>
 def test_say_on_pay_ignores_frequency_vote():
     # found by the validation cross-check: Solventum's frequency vote was read as say-on-pay
     assert parse_say_on_pay(_doc_text(SOLV_STYLE)) is None
+
+
+def test_pay_scale_detects_thousands_tagging():
+    """Devon Energy tagged its pay-versus-performance figures in $ thousands."""
+    import pandas as pd
+    from src import pvp_xbrl
+    co = pd.DataFrame({"fy": [2023, 2024], "nonpeo_avg_sct": [5502.0, 6194.0], "nonpeo_avg_cap": [1204.0, 2599.0],
+                       "nodim_sct_total": [14883.0, 17040.0], "nodim_cap": [814.0, 6709.0]})
+    peo = pd.DataFrame({"fy": [2023, 2024], "sct_total": [14883.0, 17040.0], "cap": [814.0, 6709.0]})
+    assert pvp_xbrl.pay_scale(co, peo) == 1000
+    co2, peo2 = pvp_xbrl.rescale_pay(co, peo, 1000)
+    assert peo2["sct_total"].tolist() == [14_883_000.0, 17_040_000.0]
+    # A $1-salary founder CEO alongside normally paid officers is NOT rescaled.
+    co["nonpeo_avg_sct"] = [12_866_150.0, 13_000_000.0]
+    peo["sct_total"] = [2.75, 2.75]
+    assert pvp_xbrl.pay_scale(co, peo) == 1
+
+
+def test_ceo_pay_fill_rules():
+    """J.B. Hunt tags SCT without a dimension; Tesla leaves $0 years untagged."""
+    co = pd.DataFrame({"fy": [2023, 2024, 2025], "tsr_value": [110.0, 120.0, 130.0],
+                       "nodim_sct_total": [8_256_333.0, None, None], "nodim_cap": [12_654_140.0, None, None]})
+    peo = pd.DataFrame({"fy": [2023, 2024, 2025], "member": ["A", "B", "B"], "peo_name": ["A", "B", "B"],
+                        "sct_total": [None, None, 158_359_009_867.0], "cap": [12_654_140.0, 1.4e9, 1.0e10]})
+    df = pvp_xbrl.company_year_table(co, peo).set_index("fy")
+    assert df.loc[2023, "ceo_sct_total"] == 8_256_333.0          # undimensioned SCT is the sole CEO's
+    assert df.loc[2024, "ceo_sct_total"] == 0.0                  # CAP tagged, SCT absent: a "—" row
+    assert bool(df.loc[2024, "sct_zero_inferred"]) and not bool(df.loc[2023, "sct_zero_inferred"])
+    assert df.loc[2025, "ceo_sct_total"] == 158_359_009_867.0
+
+
+# Raymond James / Invesco style: broker non-votes stated in prose before the table.
+RJF_STYLE = """<p>2. Advisory vote on executive compensation. Our shareholders approved, on an advisory, non-binding basis,
+the compensation of our named executive officers by the affirmative vote of 89.39% of the votes cast. With respect to
+this proposal, there were 25,755,179 broker non-votes. The table below sets forth the voting results.</p>
+<table><tr><td>Votes Cast "For"</td><td>Votes Cast "Against"</td><td>Abstentions</td></tr>
+<tr><td>149,425,883</td><td>17,719,175</td><td>554,928</td></tr></table>"""
+
+# Con Edison style: an intro that lists the proposals, then "(b)" and the director table.
+ED_STYLE = """<p>(a) At the Annual Meeting, stockholders voted to elect the members of its Board of Directors; to ratify the
+appointment of its independent accountants; and to approve, on an advisory basis, named executive officer
+compensation.</p><p>(b) The number of shares voted for or against each director were as shown in the following table.
+Not included in such amounts were 51,610,187 shares that were broker non-votes.</p>
+<table><tr><td>Name</td><td>For</td><td>Against</td><td>Abstain</td></tr>
+<tr><td>A. Director</td><td>217,852,727</td><td>21,541,129</td><td>1,234,567</td></tr></table>
+<p>(d) The number of shares voted for or against the advisory vote to approve named executive officer compensation:</p>
+<table><tr><td>For</td><td>Against</td><td>Abstain</td></tr><tr><td>220,000,000</td><td>17,000,000</td><td>2,000,000</td></tr></table>"""
+
+
+def test_say_on_pay_ignores_broker_non_votes_and_director_tables():
+    r = parse_say_on_pay(_doc_text(RJF_STYLE))
+    assert r["for"] == 149_425_883 and r["against"] == 17_719_175
+    r = parse_say_on_pay(_doc_text(ED_STYLE))
+    assert r["for"] == 220_000_000 and r["against"] == 17_000_000

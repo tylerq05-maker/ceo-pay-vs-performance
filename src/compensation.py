@@ -41,14 +41,17 @@ def _pvp_from_filing(f: edgar.Filing):
     co, peo = pvp_xbrl.build_tables(pvp_xbrl.parse_instance(xml))
     if co.empty:
         return None
-    return co, peo, name
+    scale = pvp_xbrl.pay_scale(co, peo)
+    if scale != 1:
+        co, peo = pvp_xbrl.rescale_pay(co, peo, scale)
+    return co, peo, name, scale
 
 
 def process_company(row: pd.Series) -> dict:
     cik, ticker = int(row["cik"]), row["ticker"]
     status = {"ticker": ticker, "cik": cik, "pvp_source": None, "accession": None,
               "filing_date": None, "proxy_url": None, "n_pvp_years": 0,
-              "n_sct_matched": 0, "error": None}
+              "n_sct_matched": 0, "pay_scale_fix": 1, "error": None}
     out = {"status": status, "years": pd.DataFrame(), "peo": pd.DataFrame(), "sct": pd.DataFrame()}
     try:
         proxies = [p for p in edgar.proxy_filings(cik) if p.filing_date >= MIN_PROXY_DATE]
@@ -59,7 +62,8 @@ def process_company(row: pd.Series) -> dict:
                 chosen = (f, *res)
                 break
         if chosen:
-            f, co, peo, inst_name = chosen
+            f, co, peo, inst_name, scale = chosen
+            status["pay_scale_fix"] = scale
             html = edgar.primary_html(f) or ""
             rows = sct_parser.parse_sct(html)
             # Names are sometimes untagged in single-CEO years; recover them

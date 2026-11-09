@@ -299,6 +299,37 @@ def backfill_names(peo_df: pd.DataFrame, total_to_name: dict[float, str]) -> pd.
     return peo_df
 
 
+CO_PAY_COLS = ["nonpeo_avg_sct", "nonpeo_avg_cap", "nodim_sct_total", "nodim_cap"]
+PEO_PAY_COLS = ["sct_total", "cap"]
+
+
+def pay_scale(co_df: pd.DataFrame, peo_df: pd.DataFrame) -> int:
+    """1000 when a filer tagged its pay figures in $ thousands, else 1.
+
+    XBRL monetary facts must be in whole dollars, but some filers tag the
+    printed (thousands) number. No S&P 500 company pays both its CEO and its
+    other named officers under $100,000 on median, so when both medians are
+    below that the figures are in thousands (Devon Energy: $14,883 = $14.9M).
+    """
+    peo_vals = peo_df["sct_total"] if not peo_df.empty and "sct_total" in peo_df else co_df.get("nodim_sct_total")
+    non = co_df.get("nonpeo_avg_sct")
+    if peo_vals is None or non is None:
+        return 1
+    mp, mn = pd.Series(peo_vals).abs().median(), pd.Series(non).abs().median()
+    return 1000 if (0 < mp < 100_000 and 0 < mn < 100_000) else 1
+
+
+def rescale_pay(co_df: pd.DataFrame, peo_df: pd.DataFrame, scale: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+    co_df, peo_df = co_df.copy(), peo_df.copy()
+    for c in CO_PAY_COLS:
+        if c in co_df:
+            co_df[c] = co_df[c] * scale
+    for c in PEO_PAY_COLS:
+        if c in peo_df:
+            peo_df[c] = peo_df[c] * scale
+    return co_df, peo_df
+
+
 def company_year_table(co_df: pd.DataFrame, peo_df: pd.DataFrame) -> pd.DataFrame:
     """One row per fiscal year with incumbent-CEO pay, CEO-seat totals and flags."""
     if co_df.empty:
@@ -321,6 +352,28 @@ def company_year_table(co_df: pd.DataFrame, peo_df: pd.DataFrame) -> pd.DataFram
                          "seat_cap": g["cap"].sum(min_count=1),
                          "all_peos": "; ".join(g["_n"].astype(str))})
         df = df.merge(pd.DataFrame(rows), on="fy", how="left")
+        # Single-CEO years where the filer tagged one figure on the CEO's
+        # member and the other without a dimension (J.B. Hunt, Williams):
+        # the undimensioned figure is that CEO's.
+        one = df["n_peos"].fillna(0) == 1
+        for c in ("ceo_sct_total", "ceo_cap", "seat_sct_total", "seat_cap", "nodim_sct_total", "nodim_cap"):
+            if c in df:
+                df[c] = pd.to_numeric(df[c], errors="coerce").astype(float)
+        for col, nodim in (("ceo_sct_total", "nodim_sct_total"), ("ceo_cap", "nodim_cap")):
+            if nodim in df:
+                fill = one & df[col].isna() & df[nodim].notna()
+                df.loc[fill, col] = df.loc[fill, nodim]
+                if col == "ceo_sct_total":
+                    df.loc[fill, "seat_sct_total"] = df.loc[fill, nodim]
+        # A year with the CEO's CAP tagged but no SCT total anywhere, when the
+        # filing does tag SCT totals in other years, is a "—" ($0) row that the
+        # filer left untagged (Tesla 2021-23: Musk received no new pay).
+        if df["ceo_sct_total"].notna().any():
+            zero = one & df["ceo_sct_total"].isna() & df["ceo_cap"].notna()
+            if "nodim_sct_total" in df:
+                zero &= df["nodim_sct_total"].isna()
+            df["sct_zero_inferred"] = zero
+            df.loc[zero, ["ceo_sct_total", "seat_sct_total"]] = 0.0
     df["multi_peo_year"] = df["n_peos"].fillna(0) > 1
     df = df.sort_values("fy").reset_index(drop=True)
     # Annual company TSR implied by the cumulative $100 series.

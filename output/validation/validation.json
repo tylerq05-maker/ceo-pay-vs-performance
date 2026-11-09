@@ -65,6 +65,7 @@
     "min_p_any_drop": 0.25875043929170916,
     "max_p_any_drop": 0.8417390217775069,
     "n_drops_significant_5pct": 0,
+    "n_drops": 99,
     "most_influential": [
       {
         "ticker": "PLTR",
@@ -102,6 +103,8 @@
     "n": 100,
     "sct_found": 100,
     "cap_found": 100,
+    "sct_exact": 100,
+    "cap_exact": 100,
     "sct_missing": [],
     "cap_missing": []
   },
@@ -313,5 +316,11 @@
       "misdated": 1
     },
     "tri_vs_adjclose_median_abs_diff_5y": 0.00021303578941966883
+  },
+  "sop_crosscheck": {
+    "n_compared": 57,
+    "n_agree": 57,
+    "median_gap_pts": 0.11,
+    "disagreements": []
   }
 }

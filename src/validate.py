@@ -164,8 +164,28 @@ def influence(m: pd.DataFrame) -> dict:
     top = df.reindex(df["delta"].abs().sort_values(ascending=False).index).head(5)
     return {"base_coef": float(base.params["tsr_pp_w"]), "base_p": float(base.pvalues["tsr_pp_w"]),
             "min_p_any_drop": float(df["p"].min()), "max_p_any_drop": float(df["p"].max()),
-            "n_drops_significant_5pct": int((df["p"] < 0.05).sum()),
+            "n_drops_significant_5pct": int((df["p"] < 0.05).sum()), "n_drops": int(len(df)),
             "most_influential": top[["ticker", "coef", "p", "delta"]].round(5).to_dict(orient="records")}
+
+
+NUM_RX = re.compile(r"\d{1,3}(?:,\d{3})+")
+
+
+def _match_kind(v: float, text: str) -> str | None:
+    """'exact' if the XBRL figure is printed verbatim; 'rounded' if the filer
+    tagged a rounded value (Casey's: $14,741,000 tagged, $14,741,268 printed;
+    Tesla: $158,359M) and a printed figure agrees within that rounding."""
+    v = abs(v)
+    if f"{v:,.0f}" in text:
+        return "exact"
+    unit = next((u for u in (1e6, 1e5, 1e4, 1e3) if v >= u and v % u == 0), None)
+    if unit is None:
+        return None
+    for s in set(NUM_RX.findall(text)):
+        n = float(s.replace(",", ""))
+        if abs(n - v) <= unit / 2 or abs(n * 1e3 - v) <= unit / 2 or abs(n * 1e6 - v) <= unit / 2:
+            return "rounded"
+    return None
 
 
 def source_match() -> dict:
@@ -175,18 +195,27 @@ def source_match() -> dict:
     latest = pvp.sort_values("fy").groupby("ticker").tail(1).set_index("ticker")
     rows = []
     for r in st.itertuples():
+        if (not isinstance(r.proxy_url, str) or r.ticker not in latest.index
+                or pd.isna(latest.loc[r.ticker, "ceo_sct_total"])):
+            continue  # no XBRL pay figure to look for
         html = http_cache.get(r.proxy_url) or ""
         text = re.sub(r"\s+", "", _doc_text(html))
+        # Filers that tagged pay in $ thousands print the thousands figure.
+        sf = getattr(r, "pay_scale_fix", 1)
+        scale = 1 if pd.isna(sf) else int(sf)
         rec = {"ticker": r.ticker}
         for col in ("ceo_sct_total", "ceo_cap"):
             v = latest.loc[r.ticker, col]
-            s = f"{abs(v):,.0f}"
-            rec[col] = s in text
+            kind = _match_kind(v / scale, text) if pd.notna(v) else None
+            rec[col] = kind is not None
+            rec[col + "_match"] = kind or "not found"
         rows.append(rec)
     df = pd.DataFrame(rows)
     df.rename(columns={"ceo_sct_total": "sct_in_proxy", "ceo_cap": "cap_in_proxy"}) \
         .to_csv(OUT / "source_match_by_company.csv", index=False)
     return {"n": int(len(df)), "sct_found": int(df["ceo_sct_total"].sum()), "cap_found": int(df["ceo_cap"].sum()),
+            "sct_exact": int((df["ceo_sct_total_match"] == "exact").sum()),
+            "cap_exact": int((df["ceo_cap_match"] == "exact").sum()),
             "sct_missing": sorted(df.loc[~df["ceo_sct_total"], "ticker"].tolist()),
             "cap_missing": sorted(df.loc[~df["ceo_cap"], "ticker"].tolist())}
 
@@ -308,6 +337,11 @@ def render(v: dict) -> str:
                                     v["source_match"], v["mix_reconciliation"], v["tsr"])
     ok = lambda b: "PASS" if b else "FAIL"  # noqa: E731
     nc = sum(c["verified"] for c in v["claims"])
+    ps = pm["sct"]["perm_p_two_sided"]
+    ci = bs["sct"]["ci95_pct_pay_per_10pp"]
+    has0 = lambda c: "includes 0" if c[0] <= 0 <= c[1] else "excludes 0"  # noqa: E731
+    sig = inf["base_p"] < 0.05
+    n_dr = inf.get("n_drops", 99)
     lines = [
         "# Validation report",
         "",
@@ -319,35 +353,37 @@ def render(v: dict) -> str:
         f"{re_['sct']['statsmodels_tsr']:.6f}; CAP {re_['cap']['numpy_tsr']:.6f} vs {re_['cap']['statsmodels_tsr']:.6f} | "
         f"{ok(re_['sct']['pass'] and re_['cap']['pass'])} |",
         f"| 2 | Permutation test, {N_PERM:,} shuffles of TSR | Granted pay: p = {pm['sct']['perm_p_two_sided']:.3f} "
-        f"(TSR fits no better than noise). CAP: p = {pm['cap']['perm_p_two_sided']:.3f} (0 of {N_PERM:,} shuffles as strong) | "
+        f"({'TSR fits no better than noise' if ps >= 0.05 else 'better than noise, but see the R²'}). CAP: p = {pm['cap']['perm_p_two_sided']:.3f} (0 of {N_PERM:,} shuffles as strong) | "
         f"Consistent with main results |",
         f"| 3 | Bootstrap 95% CI, {N_BOOT:,} resamples | Granted pay per +10pp TSR: "
-        f"{bs['sct']['ci95_pct_pay_per_10pp'][0]:+.1f}% to {bs['sct']['ci95_pct_pay_per_10pp'][1]:+.1f}% (includes 0). "
-        f"CAP: {bs['cap']['ci95_pct_pay_per_10pp'][0]:+.0f}% to {bs['cap']['ci95_pct_pay_per_10pp'][1]:+.0f}% (excludes 0) | "
+        f"{ci[0]:+.1f}% to {ci[1]:+.1f}% ({has0(ci)}). "
+        f"CAP: {bs['cap']['ci95_pct_pay_per_10pp'][0]:+.0f}% to {bs['cap']['ci95_pct_pay_per_10pp'][1]:+.0f}% ({has0(bs['cap']['ci95_pct_pay_per_10pp'])}) | "
         f"Consistent with main results |",
         f"| 4 | Leave-one-out influence | Dropping any single company: TSR p-value ranges "
-        f"{inf['min_p_any_drop']:.2f}–{inf['max_p_any_drop']:.2f}; significant in {inf['n_drops_significant_5pct']} of 99 drops. "
-        f"Most influential: {', '.join(x['ticker'] for x in inf['most_influential'])} | No single company drives the null |",
-        f"| 5 | XBRL pay figure appears verbatim in the proxy text | SCT total found in {sm['sct_found']}/{sm['n']}; "
+        f"{inf['min_p_any_drop']:.2f}–{inf['max_p_any_drop']:.2f}; significant in {inf['n_drops_significant_5pct']} of {n_dr} drops. "
+        f"Most influential: {', '.join(x['ticker'] for x in inf['most_influential'])} | "
+        f"{'No single company drives the result' if sig else 'No single company drives the null'} |",
+        f"| 5 | XBRL pay figure appears in the proxy text | SCT total found in {sm['sct_found']}/{sm['n']} "
+        f"({sm.get('sct_exact', sm['sct_found'])} verbatim, the rest within the filer's own rounding); "
         f"CAP found in {sm['cap_found']}/{sm['n']} | {ok(sm['sct_found'] >= 0.95 * sm['n'])} |",
         f"| 6 | Pay-mix rows reconcile (sum = total, total = XBRL) | {mx['sum_check_pass']}/{mx['rows']} and "
         f"{mx['xbrl_match_pass']}/{mx['rows']} rows ({mx['companies']} companies) | "
         f"{ok(mx['sum_check_pass'] == mx['rows'] and mx['xbrl_match_pass'] == mx['rows'])} |",
         f"| 7 | Case-study facts found in the cited SEC filing | {nc}/{len(v['claims'])} claims verified | "
         f"{ok(nc == len(v['claims']))} |",
+        f"| 8 | Proxy TSR vs independent market TSR | median gap {ts['median_abs_gap_pts']:.2f} pts; "
+        f"{100 * ts['share_within_1pt']:.0f}% within 1 pt; {ts['n_companies_flagged']} companies flagged and diagnosed "
+        f"{ts['flag_reasons']} | Errors are the filers', documented |",
         f"| 9 | Our 8-K say-on-pay parse vs the support each company reports in its own proxy | "
         f"{v['sop_crosscheck']['n_agree']}/{v['sop_crosscheck']['n_compared']} agree within 1 pt "
         f"(median gap {v['sop_crosscheck']['median_gap_pts']:.2f} pts) | "
         f"{ok(v['sop_crosscheck']['n_agree'] == v['sop_crosscheck']['n_compared'])} |",
-        f"| 8 | Proxy TSR vs independent market TSR | median gap {ts['median_abs_gap_pts']:.2f} pts; "
-        f"{100 * ts['share_within_1pt']:.0f}% within 1 pt; {ts['n_companies_flagged']} companies flagged and diagnosed "
-        f"{ts['flag_reasons']} | Errors are the filers', documented |",
         "",
         "## 5. Source-document match: misses",
         "",
-        f"SCT total not found verbatim: {', '.join(sm['sct_missing']) or 'none'}. CAP not found verbatim: "
-        f"{', '.join(sm['cap_missing']) or 'none'}. Misses are formatting (values shown in thousands, or split across "
-        "table cells); each was checked against the PvP table.",
+        f"SCT total not found: {', '.join(sm['sct_missing']) or 'none'}. CAP not found: "
+        f"{', '.join(sm['cap_missing']) or 'none'}. Rounded tags (e.g. $14,741,000 tagged for $14,741,268 printed) "
+        "count as found when a printed figure agrees within the filer's rounding. Remaining misses are formatting.",
         "",
         "## 7. Claim verification detail",
         "",

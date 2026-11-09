@@ -44,7 +44,7 @@ Today that means reading 300-page proxies one at a time. Our system answers all 
    - Strategy test: quintiles on excess pay, scored by later CAPM abnormal returns.
    - Backtest: a daily long-underpaid / short-overpaid portfolio, rebalanced each 30 September, with Sharpe ratio, drawdown and CAPM alpha.
    - Replication: the whole pipeline is rerun on all 500 index members to check the 100-company results hold.
-5. **Validate.** Nine automated checks plus 12 unit tests (section 6).
+5. **Validate.** Nine automated checks plus 15 unit tests (section 6).
 6. **Deliver.** The report, charts, screener and deck are all rendered from `output/results.json`, so text and numbers cannot drift apart.
 
 ## 4. How AI was used
@@ -86,10 +86,10 @@ See the charts in `output/charts/` and the screener.
 | Permutation test (2,000 shuffles) | granted pay p = 0.52, CAP p < 0.001 |
 | Bootstrap 95% CI (granted pay, +10 pts TSR) | −4.3% to +11.7% (includes zero) |
 | Leave-one-out | 0 of 99 drops change the conclusion |
-| Unit tests from real filing layouts | 12/12 pass |
+| Unit tests from real filing layouts | 15/15 pass |
 | Cold re-run from an empty cache | every dataset and result reproduced exactly |
 
-We also log **23 real errors** we caught and fixed during the build in `AI_USAGE_AND_QC.md`. They include a parser that first matched only 33% of companies, a 6% say-on-pay figure that was a parsing error, a chart drawn in the wrong units, a "+94-point" strategy signal that turned out to be one stock, and a frequency vote misread as a say-on-pay result (caught by check 9).
+We also log **27 real errors** we caught and fixed during the build in `AI_USAGE_AND_QC.md`. They include a parser that first matched only 33% of companies, a 6% say-on-pay figure that was a parsing error, a chart drawn in the wrong units, a "+94-point" strategy signal that turned out to be one stock, and a frequency vote misread as a say-on-pay result (caught by check 9).
 
 ## 7. Why someone should care
 

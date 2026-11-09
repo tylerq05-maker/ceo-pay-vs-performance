@@ -466,7 +466,7 @@ def linkedin(r, res) -> None:
              fontsize=7.8, color=MUTED)
     fig.savefig(config.CHARTS / "linkedin_summary.png", dpi=150, facecolor=SURFACE)
     plt.close(fig)
-    print("[charts] output/charts/linkedin_summary.png")
+    print(f"[charts] {(config.CHARTS / 'linkedin_summary.png').relative_to(config.ROOT)}")
 
 # ---------------------------------------------------------------------------
 # 8. Strategy test: does excess pay predict future returns?

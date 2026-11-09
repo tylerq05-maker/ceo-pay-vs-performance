@@ -14,7 +14,7 @@ The rubric says *"Explaining that 'the AI did it' is not enough."* Every group m
 >
 > **Finding 3.** Shareholders vote against the *size* of pay, not weak returns. Excess pay did not predict future returns in 2024–26.
 >
-> **Validity.** We prove the numbers with nine automated checks and replicate the results on the full S&P 500. We caught 23 real errors along the way, including some in the companies' own filings.
+> **Validity.** We prove the numbers with nine automated checks and replicate the results on the full S&P 500. We caught 27 real errors along the way, including some in the companies' own filings.
 
 ---
 
@@ -154,7 +154,7 @@ We sample today's S&P 500, so companies that collapsed and left the index are mi
 | Failed votes | 3M 45.0%, Palo Alto 46.1%, Skyworks 49.8% |
 | Strategy rank IC | +0.03 in both cohorts |
 | Backtest (sample) | Long-short −15.0%, Sharpe −0.49, CAPM alpha −1.8%/yr (t = −0.22), beta −0.41 |
-| Validation | 100/100 source match, 301/301 reconcile, 27/27 claims, 57/57 votes vs self-reports, 12/12 tests |
+| Validation | 100/100 source match, 301/301 reconcile, 27/27 claims, 57/57 votes vs self-reports, 15/15 tests |
 
 ## 6. Glossary
 
