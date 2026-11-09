@@ -375,6 +375,10 @@ def build_readme() -> str:
     mis = ", ".join(f"{x['ticker']} ({x['pay_vs_predicted_pct']:+.0f}% vs model, TSR {100 * x['tsr_3y_ann']:+.0f}%/yr)"
                     for x in o["misaligned_high_pay_low_tsr"][:3])
     failed = ", ".join(sorted({f["ticker"] for f in SP["failed_votes"]}))
+    stA, stB = r["strategy"]["cohorts"]["A"], r["strategy"]["cohorts"]["B"]
+    mA, mB = stA["measures"]["capm_abnormal"], stB["measures"]["capm_abnormal"]
+    V = json.loads((config.ROOT / "output" / "validation" / "validation.json").read_text())
+    nclaims = f"{sum(c['verified'] for c in V['claims'])}/{len(V['claims'])}"
     return f"""# CEO Pay vs. Performance: Do S&P 500 CEOs Get Paid for Shareholder Returns?
 
 An end-to-end equity-research project: it pulls CEO pay from SEC pay-versus-performance XBRL filings,
@@ -407,6 +411,33 @@ returns, and investigates the biggest outliers with primary sources.
    were never rebased when the table rolled forward.
 7. **Pay mix does not predict returns.** Median CEO pay is {100 * PM['median_mix']['equity']:.0f}% equity; equity share is unrelated to TSR
    (ρ = {PM['corr']['equity']['spearman_rho']:.2f}).
+8. **Excess pay did not predict future returns.** Point-in-time quintiles formed {stA['formation']} and {stB['formation']}: rank correlation
+   with later CAPM abnormal returns {mA['rank_ic']['spearman_rho']:+.2f} and {mB['rank_ic']['spearman_rho']:+.2f} (p = {mA['rank_ic']['spearman_p']:.2f}, {mB['rank_ic']['spearman_p']:.2f}).
+   A raw-mean "signal" of {100 * mA['q5_minus_q1']:+.0f} points came from one stock ({mA['top_movers'][0]['ticker']}).
+
+**How we know it is right:** XBRL pay found verbatim in the proxy for {V['source_match']['sct_found']}/{V['source_match']['n']} companies,
+{V['mix_reconciliation']['xbrl_match_pass']}/{V['mix_reconciliation']['rows']} pay-mix rows reconcile, {nclaims} case-study facts verified in the filings,
+permutation test p = {V['permutation']['sct']['perm_p_two_sided']:.2f} for granted pay, numpy re-estimation identical.
+Details: [`output/validation/validation_report.md`](output/validation/validation_report.md) and [`docs/AI_USAGE_AND_QC.md`](docs/AI_USAGE_AND_QC.md).
+
+## Interactive screener with a fact-checked AI analyst
+
+Open [`output/screener/index.html`](output/screener/index.html) in any browser. You can:
+- toggle granted vs. realised pay;
+- filter by sector or flags;
+- rank companies by pay vs. model;
+- open any company's dossier (prediction, five-year table, pay mix, votes, data checks, SEC link).
+
+When the page is opened as a claude.ai Artifact, an **AI analyst** answers questions using only that company's verified record. Every number in its answer is automatically matched against the data: matched figures turn green and unmatched ones red.
+
+## Class project documents
+
+| Document | Purpose |
+|---|---|
+| [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md) | What we built, the problem, how it works, AI use, output, validity, why it matters |
+| [`docs/AI_USAGE_AND_QC.md`](docs/AI_USAGE_AND_QC.md) | How AI was used, the QC stack, and 18 real errors caught |
+| [`docs/DEFENSE_GUIDE.md`](docs/DEFENSE_GUIDE.md) | 60-second pitch, every component explained, expected questions with answers |
+| [`docs/CHECKIN_1_GAME_PLAN.md`](docs/CHECKIN_1_GAME_PLAN.md) / [`CHECKIN_2_PROGRESS.md`](docs/CHECKIN_2_PROGRESS.md) | Talking points for the two check-ins |
 
 ### Outliers (residuals from `ln(granted pay) ~ TSR + ln(market cap) + sector`)
 
@@ -428,6 +459,9 @@ Full case studies with SEC and news citations are in [`output/report/report.pdf`
 | [`data/processed/master_panel.csv`](data/processed/master_panel.csv) | Company x fiscal-year panel |
 | [`output/results.json`](output/results.json) | Every statistic quoted in the report |
 | [`output/tables/`](output/tables) | Regression, sector, outlier, pay-mix and say-on-pay tables (chart table views) |
+| [`output/screener/index.html`](output/screener/index.html) | Interactive screener (AI analyst when opened in claude.ai) |
+| [`output/validation/validation_report.md`](output/validation/validation_report.md) | Automated validation results |
+| [`tests/`](tests) | Known-answer unit tests (`python -m pytest -q`) |
 | [`ASSUMPTIONS.md`](ASSUMPTIONS.md) | Every judgment call, with rationale and impact |
 
 ## How to reproduce
@@ -436,7 +470,8 @@ Full case studies with SEC and news citations are in [`output/report/report.pdf`
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 export SEC_CONTACT_EMAIL="you@example.com"     # SEC requires a contact in the User-Agent
-python -m src.pipeline --notebook               # ~10 min cold, seconds when cached
+python -m src.pipeline --notebook               # ~3 min cold, under 2 min when cached
+python -m pytest -q                             # unit tests
 ```
 
 * `FULL_UNIVERSE=1 python -m src.pipeline` runs all ~500 S&P 500 companies instead of the 100-company sample.
