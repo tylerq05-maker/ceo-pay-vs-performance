@@ -2112,5 +2112,626 @@
         "size": 22
       }
     ]
+  },
+  "strategy": {
+    "end_date": "2026-11-04",
+    "cohorts": {
+      "A": {
+        "pay_window": "FY2021-FY2023",
+        "n": 94,
+        "formation": "2024-09-30",
+        "end": "2026-11-04",
+        "years_held": 2.0944558521560577,
+        "spy_ret": 0.3672192936000467,
+        "rf_ret": 0.08619557688780888,
+        "signal_model_r2": 0.49217886064736915,
+        "measures": {
+          "fwd_ret": {
+            "quintile_mean": {
+              "Q1 most underpaid": 0.4260308515428235,
+              "Q2": 0.19298902608986104,
+              "Q3": 0.08545776202838806,
+              "Q4": 0.23623982929407011,
+              "Q5 most overpaid": 1.487693388182116
+            },
+            "quintile_median": {
+              "Q1 most underpaid": 0.1923248330664169,
+              "Q2": 0.11503038467568882,
+              "Q3": 0.07252632165271944,
+              "Q4": 0.21580633323916532,
+              "Q5 most overpaid": 0.42773571708815217
+            },
+            "quintile_mean_winsor": {
+              "Q1 most underpaid": 0.3061615014591053,
+              "Q2": 0.21714421340743398,
+              "Q3": 0.08590161082717668,
+              "Q4": 0.2406404461587996,
+              "Q5 most overpaid": 0.48643159985648454
+            },
+            "quintile_n": {
+              "Q1 most underpaid": 19,
+              "Q2": 19,
+              "Q3": 18,
+              "Q4": 19,
+              "Q5 most overpaid": 19
+            },
+            "q5_minus_q1": 1.0616625366392922,
+            "t": 1.1117226590215603,
+            "p": 0.2796978249892159,
+            "boot_ci": [
+              -0.24743096010403928,
+              3.1439517633291834
+            ],
+            "q5_minus_q1_median": 0.23541088402173527,
+            "mannwhitney_p": 0.397191535998369,
+            "q5_minus_q1_winsor": 0.18027009839737917,
+            "p_winsor": 0.27743385929848424,
+            "boot_ci_winsor": [
+              -0.12906654642964432,
+              0.4938103773815013
+            ],
+            "top_movers": [
+              {
+                "ticker": "BE",
+                "quintile": "Q5 most overpaid",
+                "fwd_ret": 17.97727139519927
+              },
+              {
+                "ticker": "PLTR",
+                "quintile": "Q1 most underpaid",
+                "fwd_ret": 3.615591221151229
+              },
+              {
+                "ticker": "MRNA",
+                "quintile": "Q5 most overpaid",
+                "fwd_ret": 2.8662277091656296
+              }
+            ],
+            "rank_ic": {
+              "n": 94,
+              "pearson_r": 0.12120689856075766,
+              "pearson_p": 0.24453857626494085,
+              "spearman_rho": 0.10326192970415056,
+              "spearman_p": 0.32197045153117154
+            },
+            "misaligned_minus_rest": 0.6986358583214137,
+            "misaligned_p": 0.3624463073834132,
+            "n_misaligned": 24
+          },
+          "excess_vs_spy": {
+            "quintile_mean": {
+              "Q1 most underpaid": 0.05881155794277677,
+              "Q2": -0.1742302675101856,
+              "Q3": -0.2817615315716586,
+              "Q4": -0.13097946430597654,
+              "Q5 most overpaid": 1.1204740945820693
+            },
+            "quintile_median": {
+              "Q1 most underpaid": -0.17489446053362978,
+              "Q2": -0.25218890892435786,
+              "Q3": -0.29469297194732724,
+              "Q4": -0.15141296036088137,
+              "Q5 most overpaid": 0.060516423488105486
+            },
+            "quintile_mean_winsor": {
+              "Q1 most underpaid": -0.06105779214094134,
+              "Q2": -0.1500750801926127,
+              "Q3": -0.28131768277287006,
+              "Q4": -0.1265788474412471,
+              "Q5 most overpaid": 0.1192123062564379
+            },
+            "quintile_n": {
+              "Q1 most underpaid": 19,
+              "Q2": 19,
+              "Q3": 18,
+              "Q4": 19,
+              "Q5 most overpaid": 19
+            },
+            "q5_minus_q1": 1.0616625366392927,
+            "t": 1.1117226590215608,
+            "p": 0.2796978249892158,
+            "boot_ci": [
+              -0.27203335884327867,
+              3.1409109899398375
+            ],
+            "q5_minus_q1_median": 0.23541088402173527,
+            "mannwhitney_p": 0.397191535998369,
+            "q5_minus_q1_winsor": 0.18027009839737923,
+            "p_winsor": 0.277433859298484,
+            "boot_ci_winsor": [
+              -0.13292566339609307,
+              0.4906377785717298
+            ],
+            "top_movers": [
+              {
+                "ticker": "BE",
+                "quintile": "Q5 most overpaid",
+                "excess_vs_spy": 17.610052101599223
+              },
+              {
+                "ticker": "PLTR",
+                "quintile": "Q1 most underpaid",
+                "excess_vs_spy": 3.248371927551182
+              },
+              {
+                "ticker": "MRNA",
+                "quintile": "Q5 most overpaid",
+                "excess_vs_spy": 2.4990084155655827
+              }
+            ],
+            "rank_ic": {
+              "n": 94,
+              "pearson_r": 0.12120689856075766,
+              "pearson_p": 0.24453857626494085,
+              "spearman_rho": 0.10326192970415056,
+              "spearman_p": 0.32197045153117154
+            },
+            "misaligned_minus_rest": 0.6986358583214138,
+            "misaligned_p": 0.36244630738341294,
+            "n_misaligned": 24
+          },
+          "capm_abnormal": {
+            "quintile_mean": {
+              "Q1 most underpaid": 0.0841264411555757,
+              "Q2": -0.13962982592212778,
+              "Q3": -0.22284309579394584,
+              "Q4": -0.1332114531342772,
+              "Q5 most overpaid": 1.0222882364064183
+            },
+            "quintile_median": {
+              "Q1 most underpaid": -0.058480712411466906,
+              "Q2": -0.0869650804655238,
+              "Q3": -0.23596981939832673,
+              "Q4": -0.178128756168082,
+              "Q5 most overpaid": -0.05847069578785208
+            },
+            "quintile_mean_winsor": {
+              "Q1 most underpaid": -0.029096725159781824,
+              "Q2": -0.113922602177979,
+              "Q3": -0.22284309579394584,
+              "Q4": -0.12277534013331917,
+              "Q5 most overpaid": 0.01258263718867334
+            },
+            "quintile_n": {
+              "Q1 most underpaid": 19,
+              "Q2": 19,
+              "Q3": 18,
+              "Q4": 19,
+              "Q5 most overpaid": 19
+            },
+            "q5_minus_q1": 0.9381617952508426,
+            "t": 0.9989065246827565,
+            "p": 0.33018472218384304,
+            "boot_ci": [
+              -0.34194355074219623,
+              2.971719598680626
+            ],
+            "q5_minus_q1_median": 1.0016623614828024e-05,
+            "mannwhitney_p": 0.8609472483171523,
+            "q5_minus_q1_winsor": 0.04167936234845516,
+            "p_winsor": 0.7867037258528531,
+            "boot_ci_winsor": [
+              -0.25475332747855767,
+              0.33160067933892895
+            ],
+            "top_movers": [
+              {
+                "ticker": "BE",
+                "quintile": "Q5 most overpaid",
+                "capm_abnormal": 17.288517002379773
+              },
+              {
+                "ticker": "PLTR",
+                "quintile": "Q1 most underpaid",
+                "capm_abnormal": 2.8433575476013644
+              },
+              {
+                "ticker": "MRNA",
+                "quintile": "Q5 most overpaid",
+                "capm_abnormal": 2.4432468912703262
+              }
+            ],
+            "rank_ic": {
+              "n": 94,
+              "pearson_r": 0.11072051415545249,
+              "pearson_p": 0.28806201870403136,
+              "spearman_rho": 0.028732435068453563,
+              "spearman_p": 0.7833924696010653
+            },
+            "misaligned_minus_rest": 0.6797573621753144,
+            "misaligned_p": 0.3668626669082006,
+            "n_misaligned": 24
+          },
+          "sector_adj": {
+            "quintile_mean": {
+              "Q1 most underpaid": 0.21007583096067708,
+              "Q2": -0.010153918262260437,
+              "Q3": -0.05490590630378404,
+              "Q4": 0.00891684157074315,
+              "Q5 most overpaid": 1.247260656737808
+            },
+            "quintile_median": {
+              "Q1 most underpaid": 0.04238836817330538,
+              "Q2": -0.10929165269198288,
+              "Q3": -0.03723492471898304,
+              "Q4": -0.012289690336140024,
+              "Q5 most overpaid": 0.17685896315095578
+            },
+            "quintile_mean_winsor": {
+              "Q1 most underpaid": 0.10036619104989807,
+              "Q2": 0.009868933819959206,
+              "Q3": -0.05490590630378404,
+              "Q4": 0.011387050790066884,
+              "Q5 most overpaid": 0.26362360058891965
+            },
+            "quintile_n": {
+              "Q1 most underpaid": 19,
+              "Q2": 19,
+              "Q3": 18,
+              "Q4": 19,
+              "Q5 most overpaid": 19
+            },
+            "q5_minus_q1": 1.0371848257771308,
+            "t": 1.0807125437313572,
+            "p": 0.29291216698483863,
+            "boot_ci": [
+              -0.28477832455869156,
+              3.049735597623857
+            ],
+            "q5_minus_q1_median": 0.1344705949776504,
+            "mannwhitney_p": 0.4220328392504856,
+            "q5_minus_q1_winsor": 0.16325740953902151,
+            "p_winsor": 0.3409708884400764,
+            "boot_ci_winsor": [
+              -0.16141553969518702,
+              0.4835010570503588
+            ],
+            "top_movers": [
+              {
+                "ticker": "BE",
+                "quintile": "Q5 most overpaid",
+                "sector_adj": 17.800814329066856
+              },
+              {
+                "ticker": "PLTR",
+                "quintile": "Q1 most underpaid",
+                "sector_adj": 3.4351745353974277
+              },
+              {
+                "ticker": "MRNA",
+                "quintile": "Q5 most overpaid",
+                "sector_adj": 2.690969902358123
+              }
+            ],
+            "rank_ic": {
+              "n": 94,
+              "pearson_r": 0.12125905084101411,
+              "pearson_p": 0.24433413913649502,
+              "spearman_rho": 0.06861498451121101,
+              "spearman_p": 0.5111030677123894
+            },
+            "misaligned_minus_rest": 0.6716255218209144,
+            "misaligned_p": 0.3824475749965998,
+            "n_misaligned": 24
+          }
+        },
+        "regression_capm": {
+          "coef_excess_pay": -4.400108573437834,
+          "se": 30.63175753924449,
+          "p": 0.8857805526009812,
+          "r2": 0.12837407831823322,
+          "n": 94,
+          "note": "abnormal return in pp per 1 log-point of excess pay (winsorised)"
+        }
+      },
+      "B": {
+        "pay_window": "FY2022-FY2024",
+        "n": 99,
+        "formation": "2025-09-30",
+        "end": "2026-11-04",
+        "years_held": 1.0951403148528405,
+        "spy_ret": 0.163454437956579,
+        "rf_ret": 0.04160024364214765,
+        "signal_model_r2": 0.19510692706596744,
+        "measures": {
+          "fwd_ret": {
+            "quintile_mean": {
+              "Q1 most underpaid": 0.1609229523291737,
+              "Q2": 0.1179797923154656,
+              "Q3": 0.2733844383491183,
+              "Q4": 0.5932518965607109,
+              "Q5 most overpaid": 0.2205274144111658
+            },
+            "quintile_median": {
+              "Q1 most underpaid": 0.21307502589474026,
+              "Q2": 0.1466916119307723,
+              "Q3": 0.20841337394976045,
+              "Q4": 0.16924961756161394,
+              "Q5 most overpaid": 0.10490511268840352
+            },
+            "quintile_mean_winsor": {
+              "Q1 most underpaid": 0.17168938878455217,
+              "Q2": 0.12626388497042434,
+              "Q3": 0.23978558809765027,
+              "Q4": 0.18926230567234154,
+              "Q5 most overpaid": 0.20482071070309185
+            },
+            "quintile_n": {
+              "Q1 most underpaid": 20,
+              "Q2": 20,
+              "Q3": 19,
+              "Q4": 20,
+              "Q5 most overpaid": 20
+            },
+            "q5_minus_q1": 0.05960446208199213,
+            "t": 0.47750004132613244,
+            "p": 0.6358683999444239,
+            "boot_ci": [
+              -0.16415499309304285,
+              0.3078794633983584
+            ],
+            "q5_minus_q1_median": -0.10816991320633673,
+            "mannwhitney_p": 0.9676346083712113,
+            "q5_minus_q1_winsor": 0.03313132191853971,
+            "p_winsor": 0.7665007603496007,
+            "boot_ci_winsor": [
+              -0.18068568345788685,
+              0.2491054490617019
+            ],
+            "top_movers": [
+              {
+                "ticker": "MRNA",
+                "quintile": "Q4",
+                "fwd_ret": 9.003097392411485
+              },
+              {
+                "ticker": "BE",
+                "quintile": "Q5 most overpaid",
+                "fwd_ret": 1.369634558586255
+              },
+              {
+                "ticker": "VLO",
+                "quintile": "Q3",
+                "fwd_ret": 1.1925166088614247
+              }
+            ],
+            "rank_ic": {
+              "n": 99,
+              "pearson_r": 0.07902021777279951,
+              "pearson_p": 0.4368799794962101,
+              "spearman_rho": 0.019393939393939394,
+              "spearman_p": 0.8488903594786633
+            },
+            "misaligned_minus_rest": 0.4727737208410304,
+            "misaligned_p": 0.20134524472667906,
+            "n_misaligned": 25
+          },
+          "excess_vs_spy": {
+            "quintile_mean": {
+              "Q1 most underpaid": -0.0025314856274053056,
+              "Q2": -0.04547464564111339,
+              "Q3": 0.10993000039253929,
+              "Q4": 0.42979745860413193,
+              "Q5 most overpaid": 0.057072976454586775
+            },
+            "quintile_median": {
+              "Q1 most underpaid": 0.049620587938161265,
+              "Q2": -0.0167628260258067,
+              "Q3": 0.04495893599318146,
+              "Q4": 0.00579517960503495,
+              "Q5 most overpaid": -0.05854932526817547
+            },
+            "quintile_mean_winsor": {
+              "Q1 most underpaid": 0.008234950827973176,
+              "Q2": -0.03719055298615466,
+              "Q3": 0.0763311501410713,
+              "Q4": 0.025807867715762562,
+              "Q5 most overpaid": 0.041366272746512875
+            },
+            "quintile_n": {
+              "Q1 most underpaid": 20,
+              "Q2": 20,
+              "Q3": 19,
+              "Q4": 20,
+              "Q5 most overpaid": 20
+            },
+            "q5_minus_q1": 0.0596044620819921,
+            "t": 0.47750004132613216,
+            "p": 0.6358683999444241,
+            "boot_ci": [
+              -0.17018685068100936,
+              0.29886920255110505
+            ],
+            "q5_minus_q1_median": -0.10816991320633673,
+            "mannwhitney_p": 0.9676346083712113,
+            "q5_minus_q1_winsor": 0.0331313219185397,
+            "p_winsor": 0.7665007603496007,
+            "boot_ci_winsor": [
+              -0.17274624766884925,
+              0.24983003799352976
+            ],
+            "top_movers": [
+              {
+                "ticker": "MRNA",
+                "quintile": "Q4",
+                "excess_vs_spy": 8.839642954454906
+              },
+              {
+                "ticker": "BE",
+                "quintile": "Q5 most overpaid",
+                "excess_vs_spy": 1.206180120629676
+              },
+              {
+                "ticker": "VLO",
+                "quintile": "Q3",
+                "excess_vs_spy": 1.0290621709048458
+              }
+            ],
+            "rank_ic": {
+              "n": 99,
+              "pearson_r": 0.07902021777279951,
+              "pearson_p": 0.4368799794962101,
+              "spearman_rho": 0.019393939393939394,
+              "spearman_p": 0.8488903594786633
+            },
+            "misaligned_minus_rest": 0.4727737208410303,
+            "misaligned_p": 0.20134524472667906,
+            "n_misaligned": 25
+          },
+          "capm_abnormal": {
+            "quintile_mean": {
+              "Q1 most underpaid": -0.010861528351275662,
+              "Q2": -0.02120836427295033,
+              "Q3": 0.14772005154579076,
+              "Q4": 0.44320982613033,
+              "Q5 most overpaid": 0.035386175450435445
+            },
+            "quintile_median": {
+              "Q1 most underpaid": 0.05360061860186899,
+              "Q2": 0.03612830525785059,
+              "Q3": 0.0448247564813182,
+              "Q4": 0.014991085028757227,
+              "Q5 most overpaid": -0.021444657933658427
+            },
+            "quintile_mean_winsor": {
+              "Q1 most underpaid": 0.013687552754806157,
+              "Q2": -0.013606745877523752,
+              "Q3": 0.10714591818615649,
+              "Q4": 0.040935991561881754,
+              "Q5 most overpaid": 0.025221588539583024
+            },
+            "quintile_n": {
+              "Q1 most underpaid": 20,
+              "Q2": 20,
+              "Q3": 19,
+              "Q4": 20,
+              "Q5 most overpaid": 20
+            },
+            "q5_minus_q1": 0.0462477038017111,
+            "t": 0.37083976088473936,
+            "p": 0.7128263653737257,
+            "boot_ci": [
+              -0.19537197556450314,
+              0.28918314075863616
+            ],
+            "q5_minus_q1_median": -0.07504527653552742,
+            "mannwhitney_p": 0.9460839766250224,
+            "q5_minus_q1_winsor": 0.011534035784776867,
+            "p_winsor": 0.9161238020737285,
+            "boot_ci_winsor": [
+              -0.1903582019990106,
+              0.21674635152386007
+            ],
+            "top_movers": [
+              {
+                "ticker": "MRNA",
+                "quintile": "Q4",
+                "capm_abnormal": 8.807881373895277
+              },
+              {
+                "ticker": "BE",
+                "quintile": "Q5 most overpaid",
+                "capm_abnormal": 1.0934677574868532
+              },
+              {
+                "ticker": "CNC",
+                "quintile": "Q3",
+                "capm_abnormal": 1.0746274061695047
+              }
+            ],
+            "rank_ic": {
+              "n": 99,
+              "pearson_r": 0.08306068521500835,
+              "pearson_p": 0.41372211521392954,
+              "spearman_rho": 0.02712430426716141,
+              "spearman_p": 0.7898504077111165
+            },
+            "misaligned_minus_rest": 0.4865620320409984,
+            "misaligned_p": 0.18670650245081186,
+            "n_misaligned": 25
+          },
+          "sector_adj": {
+            "quintile_mean": {
+              "Q1 most underpaid": -0.024663199660347447,
+              "Q2": -0.07257104022994383,
+              "Q3": 0.06677248561488733,
+              "Q4": 0.38228358248255423,
+              "Q5 most overpaid": 0.05559314390950648
+            },
+            "quintile_median": {
+              "Q1 most underpaid": 0.0073366407542863055,
+              "Q2": 0.010948868872430184,
+              "Q3": 0.014801936229745127,
+              "Q4": -0.007534798023386968,
+              "Q5 most overpaid": -0.08531418120103706
+            },
+            "quintile_mean_winsor": {
+              "Q1 most underpaid": -0.015402269874508462,
+              "Q2": -0.03797078341918528,
+              "Q3": 0.06001507238971571,
+              "Q4": -0.011180691980440933,
+              "Q5 most overpaid": 0.02801202901504789
+            },
+            "quintile_n": {
+              "Q1 most underpaid": 20,
+              "Q2": 20,
+              "Q3": 19,
+              "Q4": 20,
+              "Q5 most overpaid": 20
+            },
+            "q5_minus_q1": 0.08025634356985392,
+            "t": 0.6477611756188075,
+            "p": 0.5212347051103072,
+            "boot_ci": [
+              -0.14446172001515017,
+              0.3230735483664644
+            ],
+            "q5_minus_q1_median": -0.09265082195532337,
+            "mannwhitney_p": 0.9892068797489612,
+            "q5_minus_q1_winsor": 0.04341429888955635,
+            "p_winsor": 0.689337288653212,
+            "boot_ci_winsor": [
+              -0.15856063213274443,
+              0.2456858098121645
+            ],
+            "top_movers": [
+              {
+                "ticker": "MRNA",
+                "quintile": "Q4",
+                "sector_adj": 8.553108600794621
+              },
+              {
+                "ticker": "BE",
+                "quintile": "Q5 most overpaid",
+                "sector_adj": 1.1828074085273892
+              },
+              {
+                "ticker": "VLO",
+                "quintile": "Q3",
+                "sector_adj": 0.8122139628129793
+              }
+            ],
+            "rank_ic": {
+              "n": 99,
+              "pearson_r": 0.08148938637630117,
+              "pearson_p": 0.4226417633252352,
+              "spearman_rho": 0.025966154083323978,
+              "spearman_p": 0.7986290637607537
+            },
+            "misaligned_minus_rest": 0.4479215088790229,
+            "misaligned_p": 0.20994305969235127,
+            "n_misaligned": 25
+          }
+        },
+        "regression_capm": {
+          "coef_excess_pay": 7.211287448712169,
+          "se": 12.497511417383738,
+          "p": 0.5639273822001373,
+          "r2": 0.20439541775167602,
+          "n": 99,
+          "note": "abnormal return in pp per 1 log-point of excess pay (winsorised)"
+        }
+      }
+    }
   }
 }

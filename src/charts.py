@@ -467,6 +467,47 @@ def linkedin(r, res) -> None:
     plt.close(fig)
     print("[charts] output/charts/linkedin_summary.png")
 
+# ---------------------------------------------------------------------------
+# 8. Strategy test: does excess pay predict future returns?
+# ---------------------------------------------------------------------------
+def strategy(r) -> None:
+    st = r.get("strategy")
+    if not st:
+        return
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5.0), sharey=True)
+    for ax, (name, c) in zip(axes, st["cohorts"].items()):
+        m = c["measures"]["capm_abnormal"]
+        qs = list(m["quintile_median"].keys())
+        med = [100 * m["quintile_median"][q] for q in qs]
+        wmean = [100 * m["quintile_mean_winsor"][q] for q in qs]
+        x = np.arange(len(qs))
+        ax.bar(x, med, width=0.6, color=BLUE, edgecolor=SURFACE, linewidth=2, label="Median", zorder=2)
+        ax.scatter(x, wmean, s=60, color=ORANGE, edgecolor=SURFACE, lw=1.5, zorder=3,
+                   label="Mean (winsorised 5/95%)")
+        ax.axhline(0, color=AXIS, lw=1)
+        ax.set_xticks(x, [q.replace(" most ", "\nmost ") for q in qs])
+        ax.tick_params(axis="x", colors=INK_2, labelsize=9)
+        ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda v, _: f"{v:+.0f}pp" if v else "0"))
+        ax.grid(axis="x", visible=False)
+        ic = m["rank_ic"]
+        ax.set_title(f"Cohort {name}: pay {c['pay_window']}, formed {c['formation']}, held {c['years_held']:.1f} yrs",
+                     pad=22)
+        ax.text(0, 1.015, f"n = {c['n']}  ·  rank IC = {ic['spearman_rho']:+.2f} ({_pfmt(ic['spearman_p'])})  ·  "
+                          f"Q5−Q1 median {100 * m['q5_minus_q1_median']:+.1f}pp ({_pfmt(m['mannwhitney_p'])})",
+                transform=ax.transAxes, fontsize=9.5, color=INK_2, va="bottom")
+    axes[0].set_ylabel("CAPM abnormal return since formation")
+    axes[0].legend(loc="upper left")
+    fig.suptitle("Excess CEO pay did not predict future returns in 2024–26",
+                 x=0.01, ha="left", fontsize=15, fontweight="semibold", y=1.08)
+    fig.text(0.01, 1.005, "Companies sorted into quintiles by 'excess pay' (residual of granted pay on TSR, size and sector, "
+                          "using only data public at formation). Abnormal return = (R − Rf) − β(R_SPY − Rf).",
+             fontsize=10, color=INK_2, ha="left")
+    tm = st["cohorts"]["A"]["measures"]["capm_abnormal"]["top_movers"][0]
+    _footer(fig, f"Raw equal-weighted means are dominated by single stocks (e.g. {tm['ticker']} "
+                 f"{100 * tm['capm_abnormal']:+,.0f}pp in cohort A), so medians and winsorised means are shown. "
+                 "Current-constituent sample: survivorship bias.\n" + SOURCE, y=-0.08)
+    _save(fig, "07_strategy_test.png")
+
 
 def run() -> None:
     _style()
@@ -477,6 +518,7 @@ def run() -> None:
     pay_mix(r)
     say_on_pay(r)
     tsr_crosscheck(r)
+    strategy(r)
     linkedin(r, res)
 
 
