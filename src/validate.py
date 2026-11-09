@@ -184,6 +184,8 @@ def source_match() -> dict:
             rec[col] = s in text
         rows.append(rec)
     df = pd.DataFrame(rows)
+    df.rename(columns={"ceo_sct_total": "sct_in_proxy", "ceo_cap": "cap_in_proxy"}) \
+        .to_csv(OUT / "source_match_by_company.csv", index=False)
     return {"n": int(len(df)), "sct_found": int(df["ceo_sct_total"].sum()), "cap_found": int(df["ceo_cap"].sum()),
             "sct_missing": sorted(df.loc[~df["ceo_sct_total"], "ticker"].tolist()),
             "cap_missing": sorted(df.loc[~df["ceo_cap"], "ticker"].tolist())}

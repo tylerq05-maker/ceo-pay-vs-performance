@@ -415,6 +415,12 @@ def run() -> dict:
     results["say_on_pay"] = say_on_pay_analysis(m)
 
     path = config.ROOT / "output" / "results.json"
+    # Keep sections written by later pipeline steps (e.g. the strategy test),
+    # so re-running the analysis alone (as the notebook does) never drops them.
+    if path.exists():
+        old = json.loads(path.read_text())
+        for k, v in old.items():
+            results.setdefault(k, v)
     path.write_text(json.dumps(results, indent=2, default=lambda o: o.item() if hasattr(o, "item") else str(o)))
     _print_headline(results)
     return results

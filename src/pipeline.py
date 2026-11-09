@@ -15,7 +15,7 @@ import sys
 import time
 
 from . import (analysis, build_dataset, charts, compensation, config, market_data, outlier_evidence,
-               report, strategy, universe, validate)
+               report, screener, strategy, universe, validate)
 
 STEPS = [
     ("Phase 1  universe + stratified sample", lambda: universe.build()),
@@ -29,6 +29,7 @@ STEPS = [
     ("Validation suite", lambda: validate.run()),
     ("Phase 6a charts", lambda: charts.run()),
     ("Phase 6b report", lambda: report.build()),
+    ("Phase 6c interactive screener", lambda: screener.build()),
 ]
 
 
