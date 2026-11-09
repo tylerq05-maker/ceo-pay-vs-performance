@@ -8,7 +8,7 @@ The rubric says *"Explaining that 'the AI did it' is not enough."* Every group m
 
 > CEO pay is supposed to align managers with shareholders, and funds vote on it every year. We built an AI-assisted research system that pulls five years of CEO pay and shareholder returns for 100 S&P 500 companies straight from SEC filings. It rebuilds the returns independently from market prices and checks every number against its source.
 >
-> **Finding 1.** The pay boards *award* barely tracks returns: TSR explains 0.5% of it. Company size matters far more. The pay CEOs *realise* does track returns (46%), because it is mostly stock.
+> **Finding 1.** The pay boards *award* barely tracks returns: TSR explains 0.5% of it (0.9% across all 500 companies). Company size matters far more. The pay CEOs *realise* does track returns (46%), because it is mostly stock.
 >
 > **Finding 2.** The biggest outliers come from specific structures: mega-grants, retention awards, founder grants and grant timing. They are not boards rewarding failure.
 >
@@ -24,9 +24,9 @@ The rubric says *"Explaining that 'the AI did it' is not enough."* Every group m
 |---|---|---|
 | Question, why it matters, what we built | 1–5 | [name] |
 | Findings: pay vs. TSR, size, outliers, case studies | 6–9 | [name] |
-| Say-on-pay and the strategy test | 10–11 | [name] |
-| Validation, errors caught, demo | 12–14 | [name] |
-| Course concepts, limits, takeaways, Q&A lead | 15–17 | [name] |
+| Say-on-pay, strategy test, backtest, full-index replication | 10–13 | [name] |
+| Validation, errors caught, demo | 14–16 | [name] |
+| Course concepts, limits, takeaways, Q&A lead | 17–19 | [name] |
 
 ---
 
@@ -44,7 +44,7 @@ The rubric says *"Explaining that 'the AI did it' is not enough."* Every group m
 | Replication | Re-runs everything on all S&P 500 companies and compares | Separate output folders; SEC share counts for size | `src/replication.py` |
 | Validation | Nine automated checks | Each targets a different way the output could be wrong | `src/validate.py` |
 | Screener and AI analyst | Interactive tool; Claude explains a company and every number in its answer is checked against the data | The AI sees only the verified record; unmatched numbers turn red | `src/screener.py` |
-| Report | 5-page write-up rendered from `results.json` | No number typed by hand | `src/report.py` |
+| Report | 5-page write-up plus a 1-page replication appendix, rendered from `results.json` | No number typed by hand | `src/report.py` |
 
 ---
 
@@ -60,7 +60,7 @@ Partly, yes, and we say so on the slide. CAP marks equity to market, so a rising
 Pay is very right-skewed ($1.7M to $79M), so logs make a 10% difference mean the same thing at any level. CAP can be negative (40 CEO-years are), and logs can't take negatives. asinh behaves like a log for large values but works for negatives.
 
 **Q: An R² of 0.5% is tiny. Isn't low R² normal in finance?**
-Low R² alone isn't the point. The TSR *coefficient* is small and statistically indistinguishable from zero: +1.8% pay per 10 points of TSR, p = 0.69, with a bootstrap 95% CI of −4% to +12%. The permutation test confirms it: shuffled TSR fits as well as real TSR (p = 0.52). By contrast, size alone adds about 10 points of R².
+Low R² alone isn't the point. The TSR *coefficient* is small and statistically indistinguishable from zero: +1.8% pay per 10 points of TSR, p = 0.69, with a bootstrap 95% CI of −4% to +12%. The permutation test confirms it: shuffled TSR fits as well as real TSR (p = 0.52). By contrast, size alone adds about 10 points of R². On all 481 full-index companies the coefficient becomes statistically significant but stays small (next question).
 
 **Q: Why control for size, and why size at the *start* of the window?**
 Bigger companies pay more, a well-known result. If we used *current* market cap, companies whose stock rose would look bigger, and size would soak up part of the TSR effect. Measuring size before the window avoids that. A robustness check with current market cap and with revenue gives the same answer.
@@ -78,7 +78,7 @@ Because TSR barely affects predicted pay, the model gives a high-return company 
 The XBRL tags each CEO separately. We take the CEO in office at fiscal year-end, flag the year, and keep the alternative "CEO-seat" total (all CEOs summed). Results are the same either way (robustness table). *Evidence:* `ASSUMPTIONS.md` C4–C5; the unit test `test_pvp_multi_ceo_incumbent_and_cumulative_tsr`.
 
 **Q: How do you know the SEC XBRL numbers are right?**
-For all 100 companies, the XBRL CEO pay figure appears verbatim in the human-readable proxy (100/100). The pay mix we parsed separately reconciles to the same totals (301/301 rows).
+For all 100 companies, the XBRL CEO pay figure appears verbatim in the human-readable proxy (100/100). The pay mix we parsed separately reconciles to the same totals (301/301 rows). On the full index: 492/492 found (488 verbatim; 4 filers tagged a rounded figure, such as Casey's $14,741,000 for $14,741,268 printed), and 1,410/1,410 pay-mix rows reconcile.
 
 **Q: You say companies' own TSR figures are wrong. How do you know it's not your mistake?**
 Three things. Our TSR matches Yahoo's adjusted prices to 0.02%. It matches the proxies to a median 0.07 points. For the 12 companies that disagree, the gap has a mechanical explanation: their earlier years match our TSR measured from the *previous* table's base date ("stale base"), or BlackRock's match the *next* year ("misdated"). The latest-year figure agrees in 10 of the 12.
@@ -107,7 +107,23 @@ Bloom Energy rose about 1,800% and sat in the "most overpaid" fifth. One stock o
 *Evidence:* chart `08_backtest.png`, `results.json` → `backtest`.
 
 **Q: Isn't 100 companies too small? Does it hold for the whole index?**
-We re-ran the identical pipeline on every S&P 500 company (`FULL_UNIVERSE=1`) and compared the two side by side (report appendix, `09_replication.png`). The 100-company sample is the primary study because the case studies were researched on its outliers.
+We re-ran the identical pipeline on every S&P 500 company (`FULL_UNIVERSE=1`); 481 make it into the 3-year model. Side by side (report appendix, `09_replication.png`):
+- TSR's share of granted pay: 0.5% sample, 0.9% full. Of realised pay: 46% and 42%.
+- Pay ranks with size 0.55 / 0.47 and with TSR 0.15 / 0.16.
+- Say-on-pay vs excess pay: −0.30 in both (full index p < 0.001, 1,208 meetings).
+- Strategy rank IC: +0.03 / +0.03 sample, +0.01 / +0.02 full. Backtest alpha: −1.8% / −0.4% a year, both indistinguishable from zero.
+
+The 100-company sample stays the primary study because the case studies were researched on its outliers.
+
+**Q: The sample says granted pay has no significant link to TSR, but the full index finds one. Which is right?**
+Both, and they agree. With 481 companies we have five times the data, so a *small* effect becomes detectable: +6.1% pay per 10 points of TSR (p = 0.03; bootstrap 95% CI +1% to +12%; permutation p = 0.007). It survives dropping any single company in 480 of 481 cases. The sample's 95% interval (−7% to +11%) already contained +6%; it just could not rule out zero. TSR still explains under 1% of granted pay, while doubling company size goes with about +21% pay (p < 0.001). So the precise statement is: boards' awards respond *weakly* to returns and *strongly* to size.
+
+**Q: What went wrong when you scaled to 500 companies?**
+The full run surfaced data problems the sample never hit, all logged in `AI_USAGE_AND_QC.md` (items 21–27):
+- **Yahoo blocked requests mid-run.** We switched to SEC share counts × price for size and validated it against Yahoo on the sample.
+- **Devon Energy tagged its pay in thousands**, so its CEO "earned $14,830". We now detect and rescale this.
+- **Tesla left Musk's $0 years untagged.** His 3-year average came out as the whole $158B 2025 award. We read Tesla's table ("—" = $0) and treat those years as zero.
+- **Four 8-K layouts fooled the vote parser.** It read broker non-vote counts or a director table as the say-on-pay result (Con Edison, Invesco, Raymond James, Everest). The cross-check against companies' own statements caught them; the parser is fixed and unit-tested.
 
 **Q: How did you measure size for the full index?**
 Yahoo's quote service started refusing bulk requests during the full run. For the full index we therefore used SEC-reported shares outstanding × price, adjusted for later stock splits. We validated it on the 100 sample companies, where both exist: 97 of 100 agree with Yahoo within 10% (correlation 0.99). The three exceptions have explanations: Ares counts only its Class A units, and Kimberly-Clark and Skyworks have pending mergers.
@@ -124,7 +140,7 @@ We sample today's S&P 500, so companies that collapsed and left the index are mi
 
 **Q: What did your group do versus the AI?**
 - **We decided** the question, the data sources and every design rule (window, CEO rule, controls, winsorizing, outlier definition).
-- **We reviewed** every output, and the 23-item error log in `AI_USAGE_AND_QC.md` is our review record.
+- **We reviewed** every output, and the 27-item error log in `AI_USAGE_AND_QC.md` is our review record.
 - **The AI** wrote and ran the code.
 - **Our rule:** AI is never the source of a number.
 
@@ -132,7 +148,6 @@ We sample today's S&P 500, so companies that collapsed and left the index are mi
 - Write case studies for the full-index outliers.
 - Add firms that left the index.
 - Spread mega-grants over their vesting period to measure "normal" pay.
-- Use reported share counts for size.
 - Extend the strategy test as more returns accrue.
 
 ---
@@ -155,6 +170,9 @@ We sample today's S&P 500, so companies that collapsed and left the index are mi
 | Strategy rank IC | +0.03 in both cohorts |
 | Backtest (sample) | Long-short −15.0%, Sharpe −0.49, CAPM alpha −1.8%/yr (t = −0.22), beta −0.41 |
 | Validation | 100/100 source match, 301/301 reconcile, 27/27 claims, 57/57 votes vs self-reports, 15/15 tests |
+| Full index (481 in model) | Granted R² 0.9%, +6.1% per 10 pts (p = 0.03); realised R² 42%; size ρ 0.47 vs TSR 0.16; 2× size ≈ +21% pay |
+| Full index, votes and strategy | Say-on-pay ρ −0.30 (1,208 meetings, 20 failed); strategy IC +0.01 / +0.02; backtest alpha −0.4%/yr (t = −0.09), ~96 stocks per fifth |
+| Full index, validation | 492/492 source match, 1,410/1,410 pay-mix rows, 274/295 votes vs self-reports (gaps spot-checked) |
 
 ## 6. Glossary
 

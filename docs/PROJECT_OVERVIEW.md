@@ -13,7 +13,7 @@ An AI-built research system that answers three investment questions from primary
 |---|---|
 | One-command data pipeline: SEC EDGAR → verified dataset → statistics → report | `src/`, run `python -m src.pipeline` |
 | Interactive screener with a fact-checked AI analyst | `output/screener/index.html` (live version on claude.ai) |
-| 5-page equity-research report with sourced case studies | `output/report/report.pdf` |
+| 5-page equity-research report with sourced case studies, plus a replication appendix | `output/report/report.pdf` |
 | Strategy test (point-in-time quintile portfolios, CAPM abnormal returns) | `src/strategy.py`, chart `07_strategy_test.png` |
 | Portfolio backtest (daily long-short, Sharpe, drawdown, CAPM alpha with Newey-West t-stats) | `src/backtest.py`, chart `08_backtest.png` |
 | Full S&P 500 replication (all 500 companies, same code) | `FULL_UNIVERSE=1 python -m src.pipeline`, `src/replication.py`, chart `09_replication.png` |
@@ -69,6 +69,7 @@ Headline results (99 companies, latest 3 fiscal years):
 | Say-on-pay vs excess pay | Spearman −0.30 (p = 0.004); 3 failed votes in 247 meetings |
 | Excess pay → later abnormal return | rank IC +0.03 in both cohorts (no signal) |
 | Long underpaid / short overpaid backtest | CAPM alpha −1.8%/yr (t = −0.22); Sharpe −0.49 |
+| **Full S&P 500 replication (481 companies)** | Granted-pay R² 0.9%, realised 42%; a small granted-pay link becomes detectable (+6.1% per 10 pts, p = 0.03); say-on-pay ρ −0.30; strategy IC +0.01/+0.02; backtest alpha −0.4%/yr |
 | Proxy TSR filing errors found | 12 of 100 companies |
 
 See the charts in `output/charts/` and the screener.
@@ -88,6 +89,7 @@ See the charts in `output/charts/` and the screener.
 | Leave-one-out | 0 of 99 drops change the conclusion |
 | Unit tests from real filing layouts | 15/15 pass |
 | Cold re-run from an empty cache | every dataset and result reproduced exactly |
+| Same checks on the full index | 492/492 source match (488 verbatim, 4 within the filer's rounding); 1,410/1,410 pay-mix rows; 274/295 votes vs self-reports, with the gaps spot-checked by hand |
 
 We also log **27 real errors** we caught and fixed during the build in `AI_USAGE_AND_QC.md`. They include a parser that first matched only 33% of companies, a 6% say-on-pay figure that was a parsing error, a chart drawn in the wrong units, a "+94-point" strategy signal that turned out to be one stock, and a frequency vote misread as a say-on-pay result (caught by check 9).
 

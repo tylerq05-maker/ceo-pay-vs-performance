@@ -18,6 +18,7 @@
 - **TSR agreement.** Our TSR matches the proxies to a median 0.07 points, and the gaps we found turned out to be the companies' own filing errors.
 - **Clear headline.** Granted pay barely tracks TSR (R² 0.5%). Realised pay tracks it strongly (R² 46%). Size matters more than returns.
 - **Explained outliers.** Every top outlier has a documented explanation verified in its filing.
+- **Full-index replication.** On 481 companies the pattern holds: TSR explains 0.9% of granted pay vs 42% of realised pay, say-on-pay vs excess pay is −0.30 again, and the strategy and backtest still find nothing. With more data a small granted-pay link (+6% per 10 points, p = 0.03) becomes detectable, which sharpens our wording from "no link" to "a weak link".
 
 ## What is not working, or was weaker than hoped
 
@@ -33,6 +34,7 @@
 - **We added a misalignment screen** (high pay plus weak returns) next to the regression outliers, because the outliers alone mostly measure pay relative to size.
 - **We moved to outlier-robust statistics** (medians, rank tests) in the strategy test.
 - **We added the screener's AI fact-checker**, so the AI's answers are checked automatically, not just generated.
+- **We scaled from 100 to all 500 companies** as a replication. Doing so surfaced filing problems the sample never hit: thousands-scale tagging, untagged $0 years, and four 8-K layouts. Each is now handled and unit-tested.
 
 ## What still needs to be done before presentation day
 
