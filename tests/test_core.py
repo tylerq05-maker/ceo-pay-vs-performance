@@ -183,3 +183,15 @@ def test_say_on_pay_own_proposal_number_not_a_delimiter():
     res = parse_say_on_pay(_doc_text(PLTR_STYLE))
     assert res["for"] == 1_987_926_773
     assert res["support"] == pytest.approx(1_987_926_773 / (1_987_926_773 + 357_136_775 + 9_794_454))
+
+
+SOLV_STYLE = """<p>Proposal Number 3: shareholders voted on how often to cast future advisory votes on the compensation of
+its named executive officers (every 1 year, 2 years, or 3 years).</p>
+<table><tr><td>One Year</td><td>Two Years</td><td>Three Years</td><td>Abstentions</td><td>Broker Non-Votes</td></tr>
+<tr><td>135,522,957</td><td>262,972</td><td>1,071,704</td><td>677,798</td><td>16,218,224</td></tr></table>
+<p>Proposal Number 4: ratified PricewaterhouseCoopers.</p>"""
+
+
+def test_say_on_pay_ignores_frequency_vote():
+    # found by the validation cross-check: Solventum's frequency vote was read as say-on-pay
+    assert parse_say_on_pay(_doc_text(SOLV_STYLE)) is None

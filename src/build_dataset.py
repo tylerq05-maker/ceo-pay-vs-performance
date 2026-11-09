@@ -106,7 +106,7 @@ def build() -> tuple[pd.DataFrame, pd.DataFrame]:
         m[f"ln_mcap_start_{n}y"] = np.log(m[f"mcap_start_{n}y"])
         m[f"rel_tsr_{n}y"] = m[f"tsr_{n}y"] - m[f"peer_tsr_{n}y"]
         m[f"cap_to_sct_{n}y"] = m[f"cap_avg_{n}y"] / m[f"sct_avg_{n}y"]
-    m["ln_mcap_now"] = np.log(m["yf_marketCap"])
+    m["ln_mcap_now"] = np.log(m["mcap_now"])
     m["co_ceo"] = m["ticker"].map(
         pvp.groupby("ticker")["multi_peo_year"].apply(lambda s: s.fillna(False).astype(bool).sum() >= 3))
 

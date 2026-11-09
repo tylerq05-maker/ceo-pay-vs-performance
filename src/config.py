@@ -46,15 +46,22 @@ AS_OF_DATE: str = os.getenv("AS_OF_DATE", "2026-10-30")
 # ---------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parents[1]
 DATA_RAW = ROOT / "data" / "raw"
-DATA_PROCESSED = ROOT / "data" / "processed"
-CHARTS = ROOT / "output" / "charts"
-REPORT = ROOT / "output" / "report"
+# The 100-company sample writes to data/processed and output/. The full
+# universe writes to its own sub-folders so the two never overwrite each other.
+DATA_PROCESSED = ROOT / "data" / "processed" / ("full_universe" if FULL_UNIVERSE else "")
+OUTPUT = ROOT / "output" / ("full_universe" if FULL_UNIVERSE else "")
+DATA_PROCESSED_SAMPLE = ROOT / "data" / "processed"
+OUTPUT_SAMPLE = ROOT / "output"
+DATA_PROCESSED_FULL = ROOT / "data" / "processed" / "full_universe"
+OUTPUT_FULL = ROOT / "output" / "full_universe"
+CHARTS = OUTPUT / "charts"
+REPORT = OUTPUT / "report"
 
 RAW_EDGAR = DATA_RAW / "edgar"
 RAW_MARKET = DATA_RAW / "market"
 RAW_UNIVERSE = DATA_RAW / "universe"
 
-for _p in (DATA_RAW, DATA_PROCESSED, CHARTS, REPORT, RAW_EDGAR, RAW_MARKET, RAW_UNIVERSE):
+for _p in (DATA_RAW, DATA_PROCESSED, OUTPUT, CHARTS, REPORT, RAW_EDGAR, RAW_MARKET, RAW_UNIVERSE):
     _p.mkdir(parents=True, exist_ok=True)
 
 

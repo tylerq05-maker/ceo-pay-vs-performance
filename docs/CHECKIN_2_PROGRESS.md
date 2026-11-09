@@ -5,10 +5,11 @@
 ## What we have built so far
 
 - **Full pipeline from SEC filings to results.** It runs with one command, takes about 3 minutes from an empty cache, and covers 100 companies and 496 CEO-years.
-- **Verified dataset.** CEO pay and "compensation actually paid" come from XBRL. The pay mix comes from the Summary Compensation Table and reconciles 301 of 301 rows. TSR is rebuilt independently. Say-on-pay covers 248 votes.
+- **Verified dataset.** CEO pay and "compensation actually paid" come from XBRL. The pay mix comes from the Summary Compensation Table and reconciles 301 of 301 rows. TSR is rebuilt independently. Say-on-pay covers 247 meetings, and 57 of 57 vote results we could compare match what the companies say about themselves.
 - **Statistics.** Regressions over 1-, 3- and 5-year windows with robustness checks, outliers from residuals, a within-company panel, pay mix, and say-on-pay.
-- **Strategy test.** Point-in-time portfolios with CAPM abnormal returns.
-- **Validation suite.** 8 automated checks plus 11 unit tests.
+- **Strategy test and backtest.** Point-in-time portfolios with CAPM abnormal returns, plus a daily long-short backtest with Sharpe ratio, drawdown and CAPM alpha (Newey-West t-stats).
+- **Validation suite.** 9 automated checks plus 12 unit tests.
+- **Full S&P 500 replication.** The same code rerun on all 500 index members.
 - **Deliverables.** Report, charts, notebook, an interactive screener with a fact-checked AI analyst, and the deck.
 
 ## What is working
@@ -21,9 +22,10 @@
 ## What is not working, or was weaker than hoped
 
 - **First parser.** It matched the pay mix for only 33% of companies. It took five rounds of fixes to reach 100%.
-- **Say-on-pay parser.** Its first version misread some filings; one showed 6% support. It now covers 90 of 100 companies; 10 layouts are still not handled.
+- **Say-on-pay parser.** Its first version misread some filings; one showed 6% support. It now covers 89 of 100 companies. Cross-checking it against the companies' own descriptions caught one more misread (a frequency vote read as say-on-pay), which we fixed and covered with a unit test.
 - **No strategy signal.** The test found nothing. Raw averages looked like a strong signal until we traced it to one stock.
 - **Outlier list.** The top "overpaid" companies are all strong performers, which is less intuitive than expected.
+- **Yahoo Finance blocked company-info requests mid-run** on the 500-company version, leaving market caps blank. We switched to SEC share counts × price and checked them against Yahoo: 97 of 100 within 10%.
 
 ## What we changed from the original plan
 
@@ -37,4 +39,3 @@
 - Tailor the "course concepts" slide to our syllabus terms.
 - Each member rehearses one section using `DEFENSE_GUIDE.md`.
 - Share the screener and deck links with the class.
-- Optional: run the full 500-company universe (`FULL_UNIVERSE=1`) for a robustness slide.

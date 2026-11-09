@@ -218,6 +218,11 @@ def build_tables(parsed: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
                                 **members["__nodim__"], "source": "non-dimensional",
                                 "peo_name_ambiguous": len(set(names)) > 1})
     peo_df = pd.DataFrame(peo_records)
+    if not peo_df.empty:
+        # some filers tag only one of the two PEO concepts (e.g. J.B. Hunt)
+        for col in ("sct_total", "cap"):
+            if col not in peo_df.columns:
+                peo_df[col] = float("nan")
     if not peo_df.empty and peo_df["peo_name"].isna().any():
         # Single-PEO filers often tag the name only once; borrow it for the
         # other non-dimensional years (only when no multi-PEO year exists).

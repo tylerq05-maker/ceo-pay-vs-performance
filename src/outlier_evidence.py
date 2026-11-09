@@ -90,6 +90,10 @@ def parse_say_on_pay(text: str) -> dict | None:
         snippet = text[m.start():stop]
         if not re.search(r"\bfor\b|against", snippet, re.I):
             continue
+        # say-on-FREQUENCY votes ("One Year | Two Years | Three Years") are not
+        # say-on-pay results, even when the word "frequency" never appears
+        if re.search(r"one year\W+two years|1 year\W+2 years|every (?:one|1|two|2|three|3) years?", snippet, re.I):
+            continue
         nums = [int(n.replace(",", "")) for n in re.findall(NUM, snippet)]
         nums = [n for n in nums if n >= 1000 and not (1990 <= n <= 2035)]
         if len(nums) < 3:
@@ -184,7 +188,7 @@ def run(tickers: list[str] | None = None) -> dict:
     P = config.DATA_PROCESSED
     sop = pd.read_csv(P / "say_on_pay.csv")
     if tickers is None:
-        res = json.loads((config.ROOT / "output" / "results.json").read_text())["outliers"]
+        res = json.loads((config.OUTPUT / "results.json").read_text())["outliers"]
         tickers = [o["ticker"] for o in res["overpaid"] + res["underpaid"]] + \
                   [o["ticker"] for o in res["misaligned_high_pay_low_tsr"][:1]]
     st = pd.read_csv(P / "edgar_status.csv").set_index("ticker")

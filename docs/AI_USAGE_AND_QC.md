@@ -29,8 +29,10 @@ Each layer catches a different kind of error. All of them are automated and re-r
 | Cross-implementation | Is the regression code right? | Re-fit with plain numpy least squares | Coefficients identical to ~1e-16 |
 | Statistical robustness | Is the result real or noise? | Permutation test (2,000 shuffles), bootstrap CI, leave-one-out, 8 alternative specifications | Granted-pay null and CAP effect both hold everywhere |
 | Claim verification | Did the AI invent a fact? | Every filing fact in the case studies is regex-matched in the cited SEC document | 27/27 verified |
-| Unit tests | Do parsers handle known edge cases? | 11 known-answer tests built from real layouts | 11/11 pass |
-| Human review | Does it make sense? | Every chart was rendered and inspected, and every paragraph proofread against the data | 16 issues fixed (below) |
+| Unit tests | Do parsers handle known edge cases? | 12 known-answer tests built from real layouts | 12/12 pass |
+| Independent self-reports | Is our vote data right? | Our 8-K parse is compared with the support each company states in its next proxy | 57/57 agree (median gap 0.11 pts); found one real bug (#19) |
+| Replication | Does it hold beyond the sample? | Same pipeline re-run on the full S&P 500 | See report appendix |
+| Human review | Does it make sense? | Every chart was rendered and inspected, and every paragraph proofread against the data | 23 issues logged (below) |
 
 ## 3. Errors and weak results we caught
 
@@ -56,11 +58,16 @@ This is the real log from building the project. Most were caught because a numbe
 | 16 | Over-claiming | Draft chart titles said "granted pay doesn't track returns in any sector" and "pay mix looks the same" | Compared titles with the data | Titles now computed from the data ("10 of 11 vs 3") and caveated |
 | 17 | Strategy test | Overpaid quintile appeared to beat underpaid by **+94 pp**, which looked like a strong signal | Too good to be true, so we looked at individual stocks | One stock (Bloom Energy, +1,798%) drove it. Moderna's +900% was also checked and is real (Aug-2026 cancer-vaccine data). We switched to medians, winsorized means and rank tests: no signal |
 | 18 | Interpretation | The top "overpaid" residuals were all strong performers, which could mislead | Read the outlier list critically | Added a misalignment screen (high pay + weak returns) and said so explicitly |
+| 19 | Say-on-pay | Solventum's say-on-**frequency** vote ("One Year / Two Years / Three Years") was recorded as a 99% say-on-pay result | A new cross-check against the support each company reports in its own proxy (Solventum says about 85%) | The parser now rejects frequency tables, even when the word "frequency" never appears. Unit test added |
+| 20 | Cross-checker | The first cross-checker raised 5 false alarms: it read a 10-year average, a "more than 90%" bound, another proposal's 93%, and board statistics | Read every flagged sentence in the filing | Only percentages described as vote support in the same sentence count. Result: 57/57 agree |
+| 21 | Market data | Yahoo's quote service started refusing requests (HTTP 401) mid-run, and the code was about to cache "no market cap" for 400 companies | Coverage audit of the full-index run | Empty responses are never cached. The full index uses SEC-reported shares × price, which agrees with Yahoo within 10% for 97 of 100 sample companies |
+| 22 | Full-index parsing | J.B. Hunt tags only one of the two CEO-pay concepts, which crashed the parser | Error log of the 500-company run | Missing concepts are now handled; J.B. Hunt enters the realised-pay analysis only |
+| 23 | Backtest | The long-short portfolio "lost 15%", which looked like the signal working in reverse | CAPM regression | Explained by beta: the overpaid fifth has beta 1.25 vs 0.85. Alpha is about zero (t = −0.22) |
 
 ## 4. What we could not fully verify
 
 - **News-only context.** For example, "seven rejected pay votes since 2015" for Palo Alto comes from Bloomberg via secondary coverage. It is cited, but we did not verify it ourselves.
 - **Restated pay.** Earlier-year pay comes from the *latest* proxy. Companies rarely restate it, but the strategy test is therefore not perfectly point-in-time.
 - **Market-cap approximation.** It ignores share buybacks (±5–10%); results are not sensitive to swapping in revenue.
-- **Say-on-pay coverage.** Votes were parsed for 90 of 100 companies; the other 10 use layouts we did not handle.
+- **Say-on-pay coverage.** Votes were parsed for 89 of 100 companies; the other 11 use layouts we did not handle. Missing is safer than wrong (see #19).
 - **Survivorship bias.** The sample is today's S&P 500, so firms that collapsed and left the index are missing.

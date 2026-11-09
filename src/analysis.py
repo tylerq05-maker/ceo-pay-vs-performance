@@ -25,7 +25,7 @@ from scipy import stats
 from . import config
 
 WINSOR = (0.025, 0.975)
-OUT_TABLES = config.ROOT / "output" / "tables"
+OUT_TABLES = config.OUTPUT / "tables"
 OUT_TABLES.mkdir(parents=True, exist_ok=True)
 
 
@@ -110,7 +110,7 @@ def descriptives(m: pd.DataFrame, panel: pd.DataFrame) -> dict:
         "n_negative_cap_years": int((panel["ceo_cap"] < 0).sum()),
         "n_ceo_change_3y": int(m["ceo_change_3y"].fillna(False).astype(bool).sum()),
         "n_multi_peo_companies": int(panel.groupby("ticker")["multi_peo_year"].any().sum()),
-        "median_mcap_now": float(m["yf_marketCap"].median()),
+        "median_mcap_now": float(m["mcap_now"].median()),
         "cap_to_sct_median_3y": float(m["cap_to_sct_3y"].median()),
         "pct_ceo_years_cap_above_sct": float((panel["ceo_cap"] > panel["ceo_sct_total"]).mean()),
         "winsor_bounds_3y_pp": [float(100 * m["tsr_3y_ann"].quantile(WINSOR[0])),
@@ -414,7 +414,7 @@ def run() -> dict:
     results["tsr_quality"] = tsr_quality(m)
     results["say_on_pay"] = say_on_pay_analysis(m)
 
-    path = config.ROOT / "output" / "results.json"
+    path = config.OUTPUT / "results.json"
     # Keep sections written by later pipeline steps (e.g. the strategy test),
     # so re-running the analysis alone (as the notebook does) never drops them.
     if path.exists():

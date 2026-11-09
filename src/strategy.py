@@ -74,7 +74,7 @@ def build_cohort(name: str, spec: dict, pvp: pd.DataFrame, sample: pd.DataFrame,
                  tris: dict, prices: pd.DataFrame, spy: pd.Series, end: str) -> pd.DataFrame:
     tick = dict(zip(sample["ticker"], sample["yf_ticker"]))
     sector = dict(zip(sample["ticker"], sample["sector"]))
-    mcap_now = dict(zip(fun["ticker"], fun["yf_marketCap"]))
+    mcap_now = dict(zip(fun["ticker"], fun["mcap_now"]))
     last_close = prices.groupby("ticker").apply(lambda d: d.sort_values("date")["close"].iloc[-1],
                                                 include_groups=False)
     rows = []
@@ -201,7 +201,7 @@ def run() -> dict:
     allc = pd.concat(frames, ignore_index=True)
     allc.to_csv(P / "strategy_cohorts.csv", index=False)
     # Persist into results.json next to the main analysis
-    path = config.ROOT / "output" / "results.json"
+    path = config.OUTPUT / "results.json"
     r = json.loads(path.read_text())
     r["strategy"] = results
     path.write_text(json.dumps(r, indent=2))

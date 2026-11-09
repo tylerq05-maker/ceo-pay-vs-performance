@@ -16,6 +16,7 @@ import json
 import logging
 
 import matplotlib
+import matplotlib.dates
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -75,7 +76,7 @@ def _style() -> None:
 
 def _load():
     P = config.DATA_PROCESSED
-    r = json.loads((config.ROOT / "output" / "results.json").read_text())
+    r = json.loads((config.OUTPUT / "results.json").read_text())
     m = pd.read_csv(P / "master.csv")
     res = pd.read_csv(P / "residuals_3y.csv")
     return r, m, res
@@ -328,7 +329,7 @@ def pay_mix(r) -> None:
 # 5. Say-on-pay vs residual
 # ---------------------------------------------------------------------------
 def say_on_pay(r) -> None:
-    path = config.ROOT / "output" / "tables" / "say_on_pay_vs_residual.csv"
+    path = config.OUTPUT / "tables" / "say_on_pay_vs_residual.csv"
     if not path.exists():
         return
     d = pd.read_csv(path)
@@ -509,6 +510,54 @@ def strategy(r) -> None:
     _save(fig, "07_strategy_test.png")
 
 
+# ---------------------------------------------------------------------------
+# 9. Portfolio backtest (daily, annual rebalance)
+# ---------------------------------------------------------------------------
+def backtest(r) -> None:
+    bt = r.get("backtest")
+    path = config.DATA_PROCESSED / "backtest_daily.csv"
+    if not bt or not path.exists():
+        return
+    d = pd.read_csv(path, index_col=0, parse_dates=True)
+    fig, axes = plt.subplots(1, 2, figsize=(13.5, 5.2), gridspec_kw={"width_ratios": [1.35, 1]})
+    ax = axes[0]
+    series = [("SPY", "S&P 500 (SPY)", MUTED, 1.8), ("Q1 most underpaid", "Most underpaid fifth", BLUE, 2.2),
+              ("Q5 most overpaid", "Most overpaid fifth", RED, 2.2)]
+    for col, lab, colr, lw in series:
+        g = (1 + d[col].fillna(0)).cumprod()
+        ax.plot(g.index, g.values, color=colr, lw=lw, label=f"{lab}  {100 * (g.values[-1] - 1):+.0f}%")
+    for dt in bt["rebalance_dates"][1:]:
+        ax.axvline(pd.Timestamp(dt), color=AXIS, lw=1)
+        ax.text(pd.Timestamp(dt), ax.get_ylim()[1], " rebalance", va="top", fontsize=8.5, color=MUTED)
+    ax.set_ylabel("Growth of $1 (equal-weighted, dividends reinvested)")
+    ax.legend(loc="upper left")
+    ax.set_title("Cumulative growth")
+    ax.xaxis.set_major_locator(matplotlib.dates.MonthLocator(bymonth=(1, 7)))
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%b %Y"))
+    ax = axes[1]
+    ls = (1 + d["Long underpaid / short overpaid"].fillna(0)).cumprod()
+    ax.fill_between(ls.index, 1, ls.values, color=ORANGE, alpha=0.18, lw=0)
+    ax.plot(ls.index, ls.values, color=ORANGE, lw=2.2)
+    ax.axhline(1, color=AXIS, lw=1)
+    p = bt["portfolios"]["Long underpaid / short overpaid"]
+    ax.set_title("Long underpaid / short overpaid", pad=22)
+    ax.text(0, 1.015, f"Sharpe {p['sharpe']:.2f} · CAPM alpha {100 * p['alpha_ann']:+.1f}%/yr (t = {p['alpha_t']:.2f}) · "
+                      f"beta {p['beta']:.2f}", transform=ax.transAxes, fontsize=9.5, color=INK_2, va="bottom")
+    ax.set_ylabel("Growth of $1, zero-investment")
+    ax.xaxis.set_major_locator(matplotlib.dates.MonthLocator(bymonth=(1, 7)))
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%b %y"))
+    q1, q5 = bt["portfolios"]["Q1 most underpaid"], bt["portfolios"]["Q5 most overpaid"]
+    fig.suptitle("Backtest: buying 'underpaid' and shorting 'overpaid' earned no risk-adjusted return",
+                 x=0.01, ha="left", fontsize=15, fontweight="semibold", y=1.06)
+    fig.text(0.01, 0.995, f"{config.scope_label().replace('sample', 'Sample of ')}: fifths re-formed each 30 Sept on excess pay "
+                          f"(~{bt['n_per_quintile']['Q1 most underpaid']} stocks each), daily returns {bt['start']} to {bt['end']}. "
+                          f"Overpaid fifth beta {q5['beta']:.2f} vs underpaid {q1['beta']:.2f}: the raw gap is market risk.",
+             fontsize=10, color=INK_2, ha="left")
+    _footer(fig, "CAPM time-series regression with Newey-West (5-lag) t-statistics; risk-free = 13-week T-bill. "
+                 "Today's index members only (survivorship bias).\n" + SOURCE, y=-0.06)
+    _save(fig, "08_backtest.png")
+
+
 def run() -> None:
     _style()
     r, m, res = _load()
@@ -519,6 +568,7 @@ def run() -> None:
     say_on_pay(r)
     tsr_crosscheck(r)
     strategy(r)
+    backtest(r)
     linkedin(r, res)
 
 

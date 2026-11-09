@@ -34,7 +34,7 @@ from .analysis import fit, prepare
 from .outlier_evidence import _doc_text
 from .sct_parser import COMPONENTS
 
-OUT = config.ROOT / "output" / "validation"
+OUT = config.OUTPUT / "validation"
 OUT.mkdir(parents=True, exist_ok=True)
 N_PERM = 2000
 N_BOOT = 2000
@@ -216,6 +216,67 @@ def claims() -> list[dict]:
     return out
 
 
+SOP_MENTION = re.compile(r"say[- ]on[- ]pay|advisory vote (?:to approve|on) (?:the )?(?:compensation|executive)", re.I)
+PCT = re.compile(r"(?<![\d.])(\d{2}(?:\.\d{1,2})?)\s?%")
+
+
+def sop_crosscheck() -> dict:
+    """Check 9: our 8-K say-on-pay parse vs. the support level each company
+    reports about itself in its next proxy ("received 92.3% of votes cast").
+
+    Companies use either For/(For+Against+Abstain) or For/(For+Against), and
+    often round to whole percent, so agreement = within 1.0 point on either
+    basis. Only the first percentage after a say-on-pay mention is read.
+    """
+    P = config.DATA_PROCESSED
+    st = pd.read_csv(P / "edgar_status.csv")
+    sop = pd.read_csv(P / "say_on_pay.csv")
+    rows = []
+    for r in st.itertuples():
+        votes = sop[(sop["ticker"] == r.ticker) & (sop["meeting_date"] < str(r.filing_date))]
+        if votes.empty or not isinstance(r.proxy_url, str):
+            continue
+        v = votes.sort_values("meeting_date").iloc[-1]
+        text = _norm(_doc_text(http_cache.get(r.proxy_url) or ""))
+        stated, bound = None, False
+        for m in SOP_MENTION.finditer(text):
+            # the sentence (or bullet) that contains the mention
+            lo = max(text.rfind(". ", 0, m.start()), text.rfind("\u2022", 0, m.start()), m.start() - 400)
+            hi_c = [i for i in (text.find(". ", m.end()), text.find("\u2022", m.end())) if i != -1]
+            hi = min(hi_c + [m.end() + 400])
+            sent = text[lo:hi]
+            if not re.search(r"support|votes cast|approv|in favor|voted", sent, re.I):
+                continue
+            # skip numbers that describe multi-year averages or vote thresholds
+            def usable(mm):
+                pre = sent[max(0, mm.start() - 70):mm.start()].lower()
+                near = sent[max(0, mm.start() - 60):mm.end() + 60].lower()
+                return (40 <= float(mm.group(1)) <= 100 and "averag" not in pre and "exceed" not in pre
+                        and "majority" not in pre and not re.search(r"(?:last|past) \w+ years", pre)
+                        # the number itself must be described as vote support
+                        and re.search(r"support|votes? cast|approv|in favor|voted|shares? (?:present|represented)", near))
+            cands = [(abs((lo + mm.start()) - m.start()), float(mm.group(1)), mm.start())
+                     for mm in PCT.finditer(sent) if usable(mm)]
+            if not cands:
+                continue
+            _, stated, pos = min(cands)
+            bound = bool(re.search(r"(?:more than|over|above|at least|exceed\w*)\s*$", sent[max(0, pos - 14):pos], re.I))
+            break
+        if stated is None:
+            continue
+        a = 100 * v["for"] / (v["for"] + v["against"] + v["abstain"])
+        b = 100 * v["for"] / (v["for"] + v["against"])
+        gap = 0.0 if (bound and max(a, b) >= stated - 0.5) else min(abs(a - stated), abs(b - stated))
+        rows.append({"ticker": r.ticker, "meeting": v["meeting_date"], "ours_votes_cast": round(a, 2),
+                     "ours_for_against": round(b, 2), "company_stated": stated, "stated_is_lower_bound": bound,
+                     "gap_pts": round(gap, 2), "agree": gap <= 1.0})
+    df = pd.DataFrame(rows)
+    df.to_csv(OUT / "say_on_pay_crosscheck.csv", index=False)
+    return {"n_compared": int(len(df)), "n_agree": int(df["agree"].sum()) if len(df) else 0,
+            "median_gap_pts": float(df["gap_pts"].median()) if len(df) else None,
+            "disagreements": df.loc[~df["agree"]].to_dict(orient="records") if len(df) else []}
+
+
 def tsr_summary(r: dict) -> dict:
     q = r["tsr_quality"]
     return {k: q[k] for k in ("n_company_years_compared", "median_abs_gap_pts", "share_within_1pt",
@@ -228,10 +289,10 @@ def run() -> dict:
     warnings.filterwarnings("ignore", category=RuntimeWarning, module="statsmodels")
     rng = np.random.default_rng(SEED)
     m = pd.read_csv(config.DATA_PROCESSED / "master.csv")
-    r = json.loads((config.ROOT / "output" / "results.json").read_text())
+    r = json.loads((config.OUTPUT / "results.json").read_text())
     v = {"reestimation": reestimate(m), "permutation": permutation(m, rng), "bootstrap": bootstrap(m, rng),
          "influence": influence(m), "source_match": source_match(), "mix_reconciliation": mix_reconciliation(),
-         "claims": claims(), "tsr": tsr_summary(r)}
+         "claims": claims(), "tsr": tsr_summary(r), "sop_crosscheck": sop_crosscheck()}
     (OUT / "validation.json").write_text(json.dumps(v, indent=2, default=str))
     (OUT / "validation_report.md").write_text(render(v))
     nc = sum(c["verified"] for c in v["claims"])
@@ -274,6 +335,10 @@ def render(v: dict) -> str:
         f"{ok(mx['sum_check_pass'] == mx['rows'] and mx['xbrl_match_pass'] == mx['rows'])} |",
         f"| 7 | Case-study facts found in the cited SEC filing | {nc}/{len(v['claims'])} claims verified | "
         f"{ok(nc == len(v['claims']))} |",
+        f"| 9 | Our 8-K say-on-pay parse vs the support each company reports in its own proxy | "
+        f"{v['sop_crosscheck']['n_agree']}/{v['sop_crosscheck']['n_compared']} agree within 1 pt "
+        f"(median gap {v['sop_crosscheck']['median_gap_pts']:.2f} pts) | "
+        f"{ok(v['sop_crosscheck']['n_agree'] == v['sop_crosscheck']['n_compared'])} |",
         f"| 8 | Proxy TSR vs independent market TSR | median gap {ts['median_abs_gap_pts']:.2f} pts; "
         f"{100 * ts['share_within_1pt']:.0f}% within 1 pt; {ts['n_companies_flagged']} companies flagged and diagnosed "
         f"{ts['flag_reasons']} | Errors are the filers', documented |",

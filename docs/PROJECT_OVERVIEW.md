@@ -15,6 +15,8 @@ An AI-built research system that answers three investment questions from primary
 | Interactive screener with a fact-checked AI analyst | `output/screener/index.html` (live version on claude.ai) |
 | 5-page equity-research report with sourced case studies | `output/report/report.pdf` |
 | Strategy test (point-in-time quintile portfolios, CAPM abnormal returns) | `src/strategy.py`, chart `07_strategy_test.png` |
+| Portfolio backtest (daily long-short, Sharpe, drawdown, CAPM alpha with Newey-West t-stats) | `src/backtest.py`, chart `08_backtest.png` |
+| Full S&P 500 replication (all 500 companies, same code) | `FULL_UNIVERSE=1 python -m src.pipeline`, `src/replication.py`, chart `09_replication.png` |
 | Validation suite and unit tests | `src/validate.py`, `output/validation/validation_report.md`, `tests/` |
 | Presentation deck with speaker notes | claude.ai Slides artifact |
 | Notebook walkthrough (runs offline) | `notebooks/analysis.ipynb` |
@@ -40,7 +42,9 @@ Today that means reading 300-page proxies one at a time. Our system answers all 
    - Outliers are the residuals from that model.
    - Pay mix is tested against TSR, and say-on-pay against excess pay.
    - Strategy test: quintiles on excess pay, scored by later CAPM abnormal returns.
-5. **Validate.** Eight automated checks plus 11 unit tests (section 6).
+   - Backtest: a daily long-underpaid / short-overpaid portfolio, rebalanced each 30 September, with Sharpe ratio, drawdown and CAPM alpha.
+   - Replication: the whole pipeline is rerun on all 500 index members to check the 100-company results hold.
+5. **Validate.** Nine automated checks plus 12 unit tests (section 6).
 6. **Deliver.** The report, charts, screener and deck are all rendered from `output/results.json`, so text and numbers cannot drift apart.
 
 ## 4. How AI was used
@@ -62,8 +66,9 @@ Headline results (99 companies, latest 3 fiscal years):
 | Rank correlation of granted pay with size vs with TSR | 0.55 vs 0.15 |
 | Biggest above-model pay | Ares +244%, Palo Alto +222%, Booking +179%, all with 37–51%/yr TSR |
 | Biggest below-model pay | Amazon −93%, Palantir −72%, Coinbase −57% (founders or lumpy grants) |
-| Say-on-pay vs excess pay | Spearman −0.30 (p = 0.004); 3 failed votes |
+| Say-on-pay vs excess pay | Spearman −0.30 (p = 0.004); 3 failed votes in 247 meetings |
 | Excess pay → later abnormal return | rank IC +0.03 in both cohorts (no signal) |
+| Long underpaid / short overpaid backtest | CAPM alpha −1.8%/yr (t = −0.22); Sharpe −0.49 |
 | Proxy TSR filing errors found | 12 of 100 companies |
 
 See the charts in `output/charts/` and the screener.
@@ -76,14 +81,15 @@ See the charts in `output/charts/` and the screener.
 | Pay-mix rows reconcile (sum = total, total = XBRL) | 301/301 |
 | Our TSR vs the proxy's TSR | median gap 0.07 pts; 12 companies' errors diagnosed |
 | Case-study facts found in the cited SEC filing | 27/27 |
+| Say-on-pay results vs each company's own description in its next proxy | 57/57 agree (median gap 0.1 pts) |
 | Regression re-estimated in plain numpy | identical coefficients |
 | Permutation test (2,000 shuffles) | granted pay p = 0.52, CAP p < 0.001 |
 | Bootstrap 95% CI (granted pay, +10 pts TSR) | −4.3% to +11.7% (includes zero) |
 | Leave-one-out | 0 of 99 drops change the conclusion |
-| Unit tests from real filing layouts | 11/11 pass |
+| Unit tests from real filing layouts | 12/12 pass |
 | Cold re-run from an empty cache | every dataset and result reproduced exactly |
 
-We also log **18 real errors** we caught and fixed during the build in `AI_USAGE_AND_QC.md`. They include a parser that first matched only 33% of companies, a 6% say-on-pay figure that was a parsing error, a chart drawn in the wrong units, and a "+94-point" strategy signal that turned out to be one stock.
+We also log **23 real errors** we caught and fixed during the build in `AI_USAGE_AND_QC.md`. They include a parser that first matched only 33% of companies, a 6% say-on-pay figure that was a parsing error, a chart drawn in the wrong units, a "+94-point" strategy signal that turned out to be one stock, and a frequency vote misread as a say-on-pay result (caught by check 9).
 
 ## 7. Why someone should care
 

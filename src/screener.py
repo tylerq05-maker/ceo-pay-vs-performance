@@ -22,7 +22,7 @@ import pandas as pd
 from . import config
 
 P = config.DATA_PROCESSED
-OUT = config.ROOT / "output" / "screener"
+OUT = config.OUTPUT / "screener"
 OUT.mkdir(parents=True, exist_ok=True)
 REPO = "https://github.com/tylerq05-maker/ceo-pay-vs-performance"
 
@@ -100,13 +100,13 @@ def case_notes(panel: pd.DataFrame, sct: pd.DataFrame) -> dict:
 
 
 def build_data() -> dict:
-    r = json.loads((config.ROOT / "output" / "results.json").read_text())
+    r = json.loads((config.OUTPUT / "results.json").read_text())
     m = pd.read_csv(P / "master.csv")
     res = pd.read_csv(P / "residuals_3y.csv").set_index("ticker")
     panel = pd.read_csv(P / "master_panel.csv")
     sct = pd.read_csv(P / "sct_ceo_rows.csv")
     sop = pd.read_csv(P / "say_on_pay.csv")
-    sm = pd.read_csv(config.ROOT / "output" / "validation" / "source_match_by_company.csv").set_index("ticker")
+    sm = pd.read_csv(config.OUTPUT / "validation" / "source_match_by_company.csv").set_index("ticker")
     strat = pd.read_csv(P / "strategy_cohorts.csv")
     fis = pd.read_csv(P / "tsr_fiscal.csv")
     notes = case_notes(panel, sct)
@@ -127,7 +127,7 @@ def build_data() -> dict:
             "fy": int(row.latest_fy),
             "pay3": _f(row.sct_avg_3y, 0), "cap3": _f(row.cap_avg_3y, 0),
             "tsr3": _f(row.tsr_3y_ann), "tsr1": _f(row.tsr_1y), "tsr5": _f(row.tsr_5y_ann),
-            "peer3": _f(row.peer_tsr_3y), "mcap": _f(row.yf_marketCap, 0),
+            "peer3": _f(row.peer_tsr_3y), "mcap": _f(row.mcap_now, 0),
             "pred": _f(rr["predicted_pay"], 0) if rr is not None else None,
             "vs": _f(rr["pay_vs_predicted_pct"], 1) if rr is not None else None,
             "rank": int(rr["resid_rank"]) if rr is not None else None,
@@ -186,7 +186,7 @@ def build_data() -> dict:
                        for k, v in r["strategy"]["cohorts"].items()},
         "repo": REPO,
     }
-    v = json.loads((config.ROOT / "output" / "validation" / "validation.json").read_text())
+    v = json.loads((config.OUTPUT / "validation" / "validation.json").read_text())
     meta["validation"] = {
         "perm_p_sct": v["permutation"]["sct"]["perm_p_two_sided"],
         "boot_sct": v["bootstrap"]["sct"]["ci95_pct_pay_per_10pp"],

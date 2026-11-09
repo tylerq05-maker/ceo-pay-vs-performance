@@ -14,7 +14,7 @@ The rubric says *"Explaining that 'the AI did it' is not enough."* Every group m
 >
 > **Finding 3.** Shareholders vote against the *size* of pay, not weak returns. Excess pay did not predict future returns in 2024–26.
 >
-> **Validity.** We prove the numbers with eight automated checks and caught 18 real errors along the way, including some in the companies' own filings.
+> **Validity.** We prove the numbers with nine automated checks and replicate the results on the full S&P 500. We caught 23 real errors along the way, including some in the companies' own filings.
 
 ---
 
@@ -40,7 +40,9 @@ The rubric says *"Explaining that 'the AI did it' is not enough."* Every group m
 | Market data | Downloads prices and dividends; builds a total-return index | TSR = price change + reinvested dividends, over the same fiscal years as the pay | `src/market_data.py` |
 | Analysis | Regressions, outliers, pay mix, panel, say-on-pay | Log pay (pay is skewed), start-of-window size, sector controls, robust errors, winsorized TSR | `src/analysis.py` |
 | Strategy test | Sorts companies by "excess pay" and measures later abnormal returns | Point-in-time formation dates; CAPM abnormal returns; medians and rank tests because single stocks dominate means | `src/strategy.py` |
-| Validation | Eight automated checks (see slide 12) | Each targets a different way the output could be wrong | `src/validate.py` |
+| Backtest | Daily long-short portfolio, re-formed each September; Sharpe, drawdown, CAPM alpha and beta | Newey-West t-stats; equal weights; no transaction costs (they would only hurt) | `src/backtest.py` |
+| Replication | Re-runs everything on all S&P 500 companies and compares | Separate output folders; SEC share counts for size | `src/replication.py` |
+| Validation | Nine automated checks | Each targets a different way the output could be wrong | `src/validate.py` |
 | Screener and AI analyst | Interactive tool; Claude explains a company and every number in its answer is checked against the data | The AI sees only the verified record; unmatched numbers turn red | `src/screener.py` |
 | Report | 5-page write-up rendered from `results.json` | No number typed by hand | `src/report.py` |
 
@@ -95,20 +97,39 @@ Claude receives only the company's verified record and is told to copy numbers e
 **Q: Why were the raw averages so different?**
 Bloom Energy rose about 1,800% and sat in the "most overpaid" fifth. One stock out of 19 moved that group's average by about 90 points. We verified the move was real, as we did Moderna's +900% (August 2026 cancer-vaccine data), and switched to medians and rank tests.
 
+**Q: Walk us through the backtest. What do Sharpe, alpha and beta tell you?**
+- **Setup.** Each 30 September we re-form fifths on excess pay, then go long the most-underpaid fifth and short the most-overpaid fifth (equal-weighted, daily returns). That is the trade Cooper, Gulen & Rau's finding implies.
+- **Raw result (sample).** The long-short lost 15.0% in total, a Sharpe ratio of −0.49.
+- **Risk-adjusted result.** We regress the daily long-short return on the market's excess return (CAPM). Alpha is the return the market doesn't explain: −1.8% a year with t = −0.22, so indistinguishable from zero.
+- **Beta explains the loss.** The long-short beta is −0.41, because the overpaid fifth has beta 1.25 and the underpaid fifth 0.85. Shorting high-beta stocks in a rising market loses money, so the loss is market exposure, not a pay effect.
+- **Why Newey-West.** Its t-statistics allow for daily returns that are correlated over time.
+
+*Evidence:* chart `08_backtest.png`, `results.json` → `backtest`.
+
+**Q: Isn't 100 companies too small? Does it hold for the whole index?**
+We re-ran the identical pipeline on every S&P 500 company (`FULL_UNIVERSE=1`) and compared the two side by side (report appendix, `09_replication.png`). The 100-company sample is the primary study because the case studies were researched on its outliers.
+
+**Q: How did you measure size for the full index?**
+Yahoo's quote service started refusing bulk requests during the full run. For the full index we therefore used SEC-reported shares outstanding × price, adjusted for later stock splits. We validated it on the 100 sample companies, where both exist: 97 of 100 agree with Yahoo within 10% (correlation 0.99). The three exceptions have explanations: Ares counts only its Class A units, and Kimberly-Clark and Skyworks have pending mergers.
+
+**Q: How do you know your say-on-pay numbers are right?**
+Two independent checks.
+- **Hand checks.** We compared the parse against six 8-K filings by hand.
+- **Automated cross-check.** We compared every vote we could against the support each company states about itself in its next proxy ("92.3% of votes cast"): 57 of 57 agree, with a median gap of 0.1 points.
+
+That cross-check caught a real bug: Solventum's say-on-*frequency* vote had been read as a 99% say-on-pay result. The company says about 85%. We fixed the parser, added a unit test, and Solventum's vote is now excluded rather than wrong.
+
 **Q: What about survivorship bias?**
 We sample today's S&P 500, so companies that collapsed and left the index are missing. That biases returns upward. It probably biases the strategy test toward finding nothing, if failing firms overpaid. It's listed as the first limitation.
 
 **Q: What did your group do versus the AI?**
 - **We decided** the question, the data sources and every design rule (window, CEO rule, controls, winsorizing, outlier definition).
-- **We reviewed** every output, and the 18-item error log in `AI_USAGE_AND_QC.md` is our review record.
+- **We reviewed** every output, and the 23-item error log in `AI_USAGE_AND_QC.md` is our review record.
 - **The AI** wrote and ran the code.
 - **Our rule:** AI is never the source of a number.
 
-**Q: Why 100 companies and not 500?**
-Speed during development. The code scales with one setting (`FULL_UNIVERSE=1`). That would be the first next step.
-
 **Q: What would you do with more time?**
-- Run all 500 companies.
+- Write case studies for the full-index outliers.
 - Add firms that left the index.
 - Spread mega-grants over their vesting period to measure "normal" pay.
 - Use reported share counts for size.
@@ -129,10 +150,11 @@ Speed during development. The code scales with one setting (`FULL_UNIVERSE=1`). 
 | Excluding 4 no-grant founders | +11.6% per 10 pts (p = 0.001); 2× size = +24% |
 | Top above-model | Ares +244%, Palo Alto +222%, Booking +179% |
 | Top below-model | Amazon −93%, Palantir −72%, Coinbase −57% |
-| Say-on-pay vs excess pay | Spearman −0.30, p = 0.004; median support 92.2% |
+| Say-on-pay vs excess pay | Spearman −0.30, p = 0.004; median support 92.2%; 247 meetings |
 | Failed votes | 3M 45.0%, Palo Alto 46.1%, Skyworks 49.8% |
 | Strategy rank IC | +0.03 in both cohorts |
-| Validation | 100/100 source match, 301/301 reconcile, 27/27 claims, 11/11 tests |
+| Backtest (sample) | Long-short −15.0%, Sharpe −0.49, CAPM alpha −1.8%/yr (t = −0.22), beta −0.41 |
+| Validation | 100/100 source match, 301/301 reconcile, 27/27 claims, 57/57 votes vs self-reports, 12/12 tests |
 
 ## 6. Glossary
 
@@ -149,4 +171,8 @@ Speed during development. The code scales with one setting (`FULL_UNIVERSE=1`). 
 - **Bootstrap:** resample companies with replacement to get a confidence interval without distribution assumptions.
 - **CAPM abnormal return:** return beyond what the market and the stock's beta explain.
 - **Rank IC:** the rank correlation between a signal and later returns.
+- **Sharpe ratio:** average excess return divided by its volatility, annualized.
+- **Maximum drawdown:** the largest peak-to-trough loss.
+- **Newey-West t-statistic:** a t-statistic that allows for returns that are correlated over time.
+- **Long-short (zero-investment) portfolio:** buy one group, short another of equal size; its return is the spread.
 - **Survivorship bias:** studying only the firms that survived, which flatters returns.

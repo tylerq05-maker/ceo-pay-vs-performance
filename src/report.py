@@ -24,7 +24,7 @@ P = config.DATA_PROCESSED
 # ---------------------------------------------------------------------------
 class Data:
     def __init__(self):
-        self.r = json.loads((config.ROOT / "output" / "results.json").read_text())
+        self.r = json.loads((config.OUTPUT / "results.json").read_text())
         self.res = pd.read_csv(P / "residuals_3y.csv").set_index("ticker")
         self.panel = pd.read_csv(P / "master_panel.csv")
         self.sct = pd.read_csv(P / "sct_ceo_rows.csv")
@@ -179,6 +179,10 @@ def build_markdown() -> str:
     excl = ", ".join(xn["excluded"])
     stA, stB = r["strategy"]["cohorts"]["A"], r["strategy"]["cohorts"]["B"]
     mA, mB = stA["measures"]["capm_abnormal"], stB["measures"]["capm_abnormal"]
+    BT = r.get("backtest")
+    LS = BT["portfolios"]["Long underpaid / short overpaid"] if BT else None
+    rp = config.OUTPUT_SAMPLE / "replication.json"
+    REP = json.loads(rp.read_text()) if rp.exists() else None
 
     # ---- per-company facts (all from our dataset) -------------------------
     ares, panw, bkng, amzn, pltr, coin, gs, omc = (d.co(t) for t in
@@ -221,6 +225,41 @@ def build_markdown() -> str:
                 f"({c['pay_vs_predicted_pct']:+.0f}%, rank {int(c['resid_rank'])} of {o['n']}); TSR "
                 f"{100 * c['tsr_3y_ann']:+.0f}%/yr; avg CAP {M(c['cap_avg_3y'])}.*")
 
+    appendix_md = ""
+    if REP:
+        a, b = REP["sample"], REP["full"]
+        def row(label, fa, fb):
+            return f"| {label} | {fa} | {fb} |"
+        rows_ = [
+            row("Companies in the 3-year model", a["n_model_3y"], b["n_model_3y"]),
+            row("Share of granted pay explained by TSR (R²)", f"{100 * a['sct_r2_simple']:.1f}%", f"{100 * b['sct_r2_simple']:.1f}%"),
+            row("Granted pay per +10 pts TSR (size + sector)", f"{a['sct_effect']:+.1f}% ({pv(a['sct_p'])})", f"{b['sct_effect']:+.1f}% ({pv(b['sct_p'])})"),
+            row("Share of realised pay explained by TSR (R²)", f"{100 * a['cap_r2_simple']:.0f}%", f"{100 * b['cap_r2_simple']:.0f}%"),
+            row("Realised pay per +10 pts TSR", f"{a['cap_effect']:+.0f}%", f"{b['cap_effect']:+.0f}%"),
+            row("Rank correlation of pay with size / with TSR", f"{a['rho_size']:.2f} / {a['rho_tsr']:.2f}", f"{b['rho_size']:.2f} / {b['rho_tsr']:.2f}"),
+            row("Granted pay per +10 pts TSR, 5-year window", f"{a['sct_5y_effect']:+.1f}% ({pv(a['sct_5y_p'])})", f"{b['sct_5y_effect']:+.1f}% ({pv(b['sct_5y_p'])})"),
+            row("Same, excluding CEOs with no equity grant in window", f"{a['excl_no_equity_effect']:+.1f}% ({pv(a['excl_no_equity_p'])}; {a['excl_no_equity_n_excluded']} excluded)", f"{b['excl_no_equity_effect']:+.1f}% ({pv(b['excl_no_equity_p'])}; {b['excl_no_equity_n_excluded']} excluded)"),
+            row("Say-on-pay support vs excess pay (Spearman)", f"{a['sop_rho']:.2f} ({pv(a['sop_p'])})", f"{b['sop_rho']:.2f} ({pv(b['sop_p'])})"),
+            row("Excess pay → later abnormal return (rank IC, cohorts A / B)", f"{a['strategy_A_ic']:+.2f} / {a['strategy_B_ic']:+.2f}", f"{b['strategy_A_ic']:+.2f} / {b['strategy_B_ic']:+.2f}"),
+            row("Long-short backtest CAPM alpha per year (t)", f"{100 * a['bt_alpha']:+.1f}% ({a['bt_alpha_t']:.2f})", f"{100 * b['bt_alpha']:+.1f}% ({b['bt_alpha_t']:.2f})"),
+            row("Companies with proxy TSR errors > 10 pts", a["tsr_flagged"], b["tsr_flagged"]),
+            row("XBRL pay found verbatim in the proxy", a["val_source_match"], b["val_source_match"]),
+            row("Say-on-pay parse agrees with company-reported figure", a.get("val_sop_agree", "n/a"), b.get("val_sop_agree", "n/a")),
+        ]
+        appendix_md = (
+            "## Appendix: replication on the full S&P 500\n\n"
+            f"The same pipeline and model were re-run on every S&P 500 company. {b['n_pvp_xbrl']} of {b['n_universe']} have "
+            f"pay-versus-performance XBRL; the rest are recent listings or spin-offs without a full proxy yet. For the full index, "
+            "size comes from SEC-reported shares outstanding × price because Yahoo's quote service refused bulk requests. On the "
+            f"{REP['size_check']['n']} sample companies the two measures agree within 10% for {REP['size_check']['within_10pct']} "
+            f"(correlation {REP['size_check']['corr_log']:.2f}; exceptions {', '.join(REP['size_check']['outside'])} reflect share classes "
+            "and pending mergers).\n\n"
+            "| Measure | 100-company sample | Full S&P 500 |\n|---|---|---|\n" + "\n".join(rows_) +
+            f"\n\nFull-index top residuals: above model {', '.join(b['top_overpaid'])}; below model {', '.join(b['top_underpaid'])}. "
+            "The case studies above cover the sample; the full-index list is shown for transparency.\n\n"
+            '<img class="half" src="../charts/09_replication.png" alt="Replication chart">'
+        )
+
     today = date.today().strftime("%B %Y")
     md = f"""
 <div class="masthead">
@@ -238,6 +277,7 @@ def build_markdown() -> str:
 - **The biggest "overpaid" outliers were strong performers.** {', '.join(x['ticker'] for x in over)} were paid {over[-1]['pay_vs_predicted_pct']:.0f}–{over[0]['pay_vs_predicted_pct']:.0f}% above model, but all returned {min(over_tsr):.0f}–{max(over_tsr):.0f}%/yr. One-time or structural awards explain most of the gap. The "underpaid" end is dominated by founders and lumpy multi-year grants whose *realised* pay is enormous ({', '.join(under_founder)}), plus {len(under_ceo_change)} CEO transitions ({', '.join(under_ceo_change)}).
 - **Shareholders notice.** Companies paying further above model receive lower say-on-pay support (ρ = {SP['corr_resid_support']['spearman_rho']:.2f}, {pv(SP['corr_resid_support']['spearman_p'])}); TSR itself is unrelated to support. {len(failed)} votes failed outright ({', '.join(failed)}).
 - **Read proxy TSR with care.** {TQ['n_companies_flagged']} of {D['n_companies']} proxies contain TSR figures that miss market data by more than 10 points, mostly because earlier years were never rebased when the table rolled forward.
+{(f"- **The findings replicate on the full S&P 500.** Re-run on every index member with data (n = {REP['full']['n_model_3y']}): TSR explains {100 * REP['full']['sct_r2_simple']:.1f}% of granted pay ({REP['full']['sct_effect']:+.1f}% per 10 points, {pv(REP['full']['sct_p'])}) and {100 * REP['full']['cap_r2_simple']:.0f}% of realised pay; pay ranks with size {REP['full']['rho_size']:.2f} vs TSR {REP['full']['rho_tsr']:.2f} (appendix)." if REP else "")}
 
 ## Methodology
 
@@ -273,6 +313,9 @@ The exception is the last row. {excl} paid their CEOs almost nothing in new equi
 **6. Pay-versus-performance tables contain errors.** Our independent TSR matches the proxy within 1 point for {pct(TQ['share_within_1pt'])} of company-years (median gap {TQ['median_abs_gap_pts']:.2f} points). The errors cluster. {TQ['flag_reasons'].get('stale_base', 0)} companies carried earlier-year TSR forward from the prior year's base instead of restating it, and {misdated_txt} tagged its values one year early. Palantir's PvP table shows 2024 CEO pay of $4,630,170 while its Summary Compensation Table shows $4,360,170, a transposition in the same filing ([proxy]({SRC['PLTR_proxy']})). Multi-year proxy TSR should not be used without checking it against market data (`06_tsr_crosscheck.png`).
 
 **7. Excess pay did not predict future returns.** Following Cooper, Gulen &amp; Rau, who found that high "excess pay" firms underperformed in 1994–2011, we formed point-in-time quintiles on the pay residual using only data public at formation. Cohort A used FY2021–23 pay and was formed {stA['formation']}; cohort B used FY2022–24 pay and was formed {stB['formation']}. CAPM abnormal returns (pre-formation beta, T-bill risk-free rate) show no relation in either cohort: rank correlation {mA['rank_ic']['spearman_rho']:+.2f} ({pv(mA['rank_ic']['spearman_p'])}) and {mB['rank_ic']['spearman_rho']:+.2f} ({pv(mB['rank_ic']['spearman_p'])}); most-overpaid minus most-underpaid median {100 * mA['q5_minus_q1_median']:+.1f} and {100 * mB['q5_minus_q1_median']:+.1f} points. A raw-mean spread of {100 * mA['q5_minus_q1']:+.0f} points in cohort A came from one stock ({mA['top_movers'][0]['ticker']}), which is why medians are used (`07_strategy_test.png`).
+{(f"""
+**8. A portfolio backtest agrees.** Rebalanced each 30 September, a portfolio long the most-underpaid fifth and short the most-overpaid fifth (equal-weighted, daily returns {BT['start']} to {BT['end']}) returned {100 * LS['total_return']:+.1f}% in total, with a Sharpe ratio of {LS['sharpe']:.2f}. Its CAPM alpha was {100 * LS['alpha_ann']:+.1f}% a year (t = {LS['alpha_t']:.2f}, Newey-West). The raw loss is market exposure, not a pay effect: the overpaid fifth's beta was {BT['portfolios']['Q5 most overpaid']['beta']:.2f} against {BT['portfolios']['Q1 most underpaid']['beta']:.2f} for the underpaid fifth (`08_backtest.png`).""" + (f" On the full index (about {REP['full']['bt_n_per_fifth']} stocks per fifth) the alpha is {100 * REP['full']['bt_alpha']:+.1f}% a year (t = {REP['full']['bt_alpha_t']:.2f})." if REP and 'bt_alpha' in REP['full'] else "")) if BT else ""}
+
 
 ## Outliers: who is paid most above and below the model
 
@@ -326,6 +369,8 @@ The board has made no new equity grant to Armstrong since the August 2020 **CEO 
 
 In this sample, boards set CEO pay mainly by company size and peer benchmarks; awarded pay responds little to the returns shareholders receive. Pay-for-performance alignment is real but runs through the stock: equity grants become worth far more or far less as the share price moves, which is why realised pay tracks TSR closely. The largest deviations from the size-and-sector norm come from deliberate structural choices: mega-grants at Palo Alto, fee-for-equity swaps at Ares, retention awards at Goldman, front-loaded options at Omnicom, and founder grants at Palantir, Coinbase and Amazon. They do not come from boards rewarding weak results. Investors should judge pay on realised outcomes and grant frequency rather than single-year headline numbers. They should also check proxy TSR against market data before relying on it.
 
+{appendix_md}
+
 <div class="sources">
 <b>Data.</b> SEC EDGAR: DEF 14A pay-versus-performance XBRL (ecd taxonomy), Summary Compensation Tables, 8-K Item 5.07 vote results. Yahoo Finance: prices, dividends, market cap. Wikipedia: S&amp;P 500 constituents (CIKs verified against SEC). Results file: <code>output/results.json</code>. Full assumption log: <code>ASSUMPTIONS.md</code>.
 </div>
@@ -377,7 +422,7 @@ def build_readme() -> str:
     failed = ", ".join(sorted({f["ticker"] for f in SP["failed_votes"]}))
     stA, stB = r["strategy"]["cohorts"]["A"], r["strategy"]["cohorts"]["B"]
     mA, mB = stA["measures"]["capm_abnormal"], stB["measures"]["capm_abnormal"]
-    V = json.loads((config.ROOT / "output" / "validation" / "validation.json").read_text())
+    V = json.loads((config.OUTPUT / "validation" / "validation.json").read_text())
     nclaims = f"{sum(c['verified'] for c in V['claims'])}/{len(V['claims'])}"
     return f"""# CEO Pay vs. Performance: Do S&P 500 CEOs Get Paid for Shareholder Returns?
 

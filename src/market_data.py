@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
-from . import config
+from . import config, http_cache
 
 PRICE_CACHE = config.RAW_MARKET / "prices.csv.gz"
 INFO_DIR = config.RAW_MARKET / "info"
@@ -200,66 +200,151 @@ INFO_FIELDS = ["marketCap", "sharesOutstanding", "totalRevenue", "revenueGrowth"
                "currentPrice", "currency", "longName"]
 
 
-def _info(tk: str) -> dict:
+def _info(tk: str, fetch: bool = True) -> dict:
+    """Yahoo quote fields (cached). Empty or blocked responses are NOT cached,
+    so a later run can retry; with fetch=False only the cache is read."""
     INFO_DIR.mkdir(parents=True, exist_ok=True)
     path = INFO_DIR / f"{tk}.json"
     if path.exists():
         return json.loads(path.read_text())
-    for attempt in range(4):
+    if not fetch:
+        return {}
+    for attempt in range(2):
         try:
             info = yf.Ticker(tk).info or {}
             data = {k: info.get(k) for k in INFO_FIELDS}
-            path.write_text(json.dumps(data))
-            return data
+            if data.get("marketCap"):
+                path.write_text(json.dumps(data))
+                return data
+            return {}  # blocked / empty: do not cache, do not hammer the endpoint
         except Exception as exc:  # rate limits / transient errors
             print(f"[market] info {tk} attempt {attempt + 1} failed: {exc}")
             time.sleep(3 * (attempt + 1))
     return {}
 
 
-def _revenue_history(tk: str) -> pd.Series:
+def _revenue_history(tk: str, fetch: bool = True) -> pd.Series:
     FIN_DIR.mkdir(parents=True, exist_ok=True)
     path = FIN_DIR / f"{tk}_revenue.csv"
     if path.exists():
         s = pd.read_csv(path, index_col=0).iloc[:, 0]
         s.index = pd.to_datetime(s.index)
         return s
-    for attempt in range(3):
-        try:
-            inc = yf.Ticker(tk).income_stmt
-            row = next((r for r in ("Total Revenue", "Operating Revenue", "Revenue") if r in inc.index), None)
-            s = inc.loc[row].dropna().sort_index() if row else pd.Series(dtype=float)
+    if not fetch:
+        return pd.Series(dtype=float)
+    try:
+        inc = yf.Ticker(tk).income_stmt
+        row = next((r for r in ("Total Revenue", "Operating Revenue", "Revenue") if r in inc.index), None)
+        s = inc.loc[row].dropna().sort_index() if row else pd.Series(dtype=float)
+        if len(s):
             s.to_frame("revenue").to_csv(path)
-            return s
-        except Exception as exc:
-            print(f"[market] income_stmt {tk} attempt {attempt + 1} failed: {exc}")
-            time.sleep(3 * (attempt + 1))
+        return s
+    except Exception as exc:
+        print(f"[market] income_stmt {tk} failed: {exc}")
     return pd.Series(dtype=float)
 
 
+# --- SEC companyfacts: reported shares outstanding and annual revenue -------
+COMPANYFACTS = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
+REVENUE_CONCEPTS = ("Revenues", "RevenueFromContractWithCustomerExcludingAssessedTax",
+                    "RevenueFromContractWithCustomerIncludingAssessedTax", "SalesRevenueNet",
+                    "RevenuesNetOfInterestExpense")
+
+
+def _companyfacts(cik: int) -> dict:
+    raw = http_cache.get(COMPANYFACTS.format(cik=int(cik)))
+    return json.loads(raw) if raw else {}
+
+
+def _sec_shares(facts: dict) -> pd.Series:
+    """Shares outstanding by as-of date: the cover-page dei figure, else the
+    weighted-average diluted count from the financial statements."""
+    f = facts.get("facts", {})
+    rows = f.get("dei", {}).get("EntityCommonStockSharesOutstanding", {}).get("units", {}).get("shares", [])
+    if not rows:
+        rows = f.get("us-gaap", {}).get("WeightedAverageNumberOfDilutedSharesOutstanding", {}).get("units", {}).get("shares", [])
+    if not rows:
+        return pd.Series(dtype=float)
+    df = pd.DataFrame(rows).sort_values("filed").drop_duplicates("end", keep="last")
+    return pd.Series(df["val"].astype(float).values, index=pd.to_datetime(df["end"])).sort_index()
+
+
+def _sec_revenue(facts: dict) -> pd.Series:
+    """Annual (10-K, ~12-month) revenue; the concept with the latest data wins."""
+    g = facts.get("facts", {}).get("us-gaap", {})
+    best = pd.Series(dtype=float)
+    for c in REVENUE_CONCEPTS:
+        rows = g.get(c, {}).get("units", {}).get("USD", [])
+        df = pd.DataFrame(rows)
+        if df.empty or "start" not in df:
+            continue
+        df = df[df["form"].astype(str).str.startswith("10-K")]
+        dur = (pd.to_datetime(df["end"]) - pd.to_datetime(df["start"])).dt.days
+        df = df[(dur > 330) & (dur < 400)].sort_values("filed").drop_duplicates("end", keep="last")
+        if df.empty:
+            continue
+        s = pd.Series(df["val"].astype(float).values, index=pd.to_datetime(df["end"])).sort_index()
+        if best.empty or s.index[-1] > best.index[-1] or (s.index[-1] == best.index[-1] and len(s) > len(best)):
+            best = s
+    return best
+
+
+def _split_factor_after(px: pd.DataFrame, d) -> float:
+    s = px.loc[px.index > pd.Timestamp(d), "splits"]
+    s = s[s > 0]
+    return float(np.prod(s.to_numpy())) if len(s) else 1.0
+
+
 def fundamentals(sample: pd.DataFrame, prices: pd.DataFrame, windows: pd.DataFrame) -> pd.DataFrame:
+    """Market cap, revenue and context ratios.
+
+    Current market cap comes from Yahoo for the 100-company sample (unchanged
+    method) and from SEC-reported shares x last close for the full universe
+    (Yahoo's quote endpoint started refusing bulk requests); each falls back to
+    the other. Size at the start of each pay window = current market cap x
+    (price at window start / current price), so 'winners got bigger' does not
+    contaminate the size control.
+    """
+    prefer_sec = config.FULL_UNIVERSE
     rows = []
-    last_close = prices.groupby("ticker").apply(lambda d: d.sort_values("date")["close"].iloc[-1],
-                                                include_groups=False)
     for r in sample.itertuples():
-        info = _info(r.yf_ticker)
-        rev = _revenue_history(r.yf_ticker)
-        rec = {"ticker": r.ticker, **{f"yf_{k}": v for k, v in info.items()}}
+        info = _info(r.yf_ticker, fetch=not prefer_sec)
+        facts = _companyfacts(r.cik)
+        pxd = prices[prices["ticker"] == r.yf_ticker].set_index("date").sort_index()
+        last = float(pxd["close"].iloc[-1]) if len(pxd) else np.nan
+        sh = _sec_shares(facts)
+        mcap_sec = np.nan
+        if len(sh) and len(pxd):
+            mcap_sec = sh.iloc[-1] * _split_factor_after(pxd, sh.index[-1]) * last
+            if not 2e9 <= mcap_sec <= 2e13:  # implausible for an S&P 500 member (e.g. share-class units)
+                mcap_sec = np.nan
+        mcap_y = info.get("marketCap") or np.nan
+        if prefer_sec:
+            mcap_now, src = (mcap_sec, "sec") if mcap_sec == mcap_sec else (mcap_y, "yahoo")
+        else:
+            mcap_now, src = (mcap_y, "yahoo") if mcap_y == mcap_y else (mcap_sec, "sec")
+        rec = {"ticker": r.ticker, **{f"yf_{k}": v for k, v in info.items()},
+               "mcap_now": mcap_now, "mcap_now_source": src if mcap_now == mcap_now else None,
+               "mcap_now_yahoo": mcap_y, "mcap_now_sec": mcap_sec}
+        rev = _revenue_history(r.yf_ticker, fetch=not prefer_sec)
+        rev_src = "yahoo"
+        if prefer_sec or len(rev) < 2:
+            rs = _sec_revenue(facts)
+            if len(rs) >= 2 or (len(rs) and len(rev) < 2):
+                rev, rev_src = rs.tail(5), "sec"
         if len(rev) >= 2:
             n = (rev.index[-1] - rev.index[0]).days / 365.25
             rec["revenue_cagr"] = (rev.iloc[-1] / rev.iloc[0]) ** (1 / n) - 1 if rev.iloc[0] > 0 and n > 0.5 else np.nan
             rec["revenue_cagr_years"] = round(n, 1)
+        if len(rev):
             rec["revenue_latest"] = rev.iloc[-1]
-        # Size at the start of each pay window (avoids "winners got bigger"
-        # contaminating the size control): mcap_now x P_start / P_now.
+            rec["revenue_source"] = rev_src
         w = windows[windows["ticker"] == r.ticker]
-        px = prices[prices["ticker"] == r.yf_ticker].set_index("date")["close"]
-        mcap_now = info.get("marketCap")
         for n in config.WINDOWS:
             col = f"window_{n}y_start"
-            if not w.empty and col in w and isinstance(w[col].iloc[0], str) and mcap_now and len(px):
-                p0 = _at(px, w[col].iloc[0])
-                rec[f"mcap_start_{n}y"] = mcap_now * p0 / last_close.get(r.yf_ticker, np.nan)
+            if not w.empty and col in w and isinstance(w[col].iloc[0], str) and mcap_now == mcap_now and len(pxd):
+                p0 = _at(pxd["close"], w[col].iloc[0])
+                rec[f"mcap_start_{n}y"] = mcap_now * p0 / last
         rows.append(rec)
     return pd.DataFrame(rows)
 
