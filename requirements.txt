@@ -25,3 +25,6 @@ markdown
 weasyprint==70.0
 pyyaml
 tqdm
+
+# Tests
+pytest

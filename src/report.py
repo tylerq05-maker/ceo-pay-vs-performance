@@ -177,6 +177,8 @@ def build_markdown() -> str:
     over, under = o["overpaid"], o["underpaid"]
     mis = o["misaligned_high_pay_low_tsr"]
     excl = ", ".join(xn["excluded"])
+    stA, stB = r["strategy"]["cohorts"]["A"], r["strategy"]["cohorts"]["B"]
+    mA, mB = stA["measures"]["capm_abnormal"], stB["measures"]["capm_abnormal"]
 
     # ---- per-company facts (all from our dataset) -------------------------
     ares, panw, bkng, amzn, pltr, coin, gs, omc = (d.co(t) for t in
@@ -244,7 +246,7 @@ def build_markdown() -> str:
 **Pay mix.** Pay mix is parsed from the Summary Compensation Table HTML. A row is kept only if its components sum to its total *and* that total equals the XBRL figure.
 **Performance.** TSR is computed independently from Yahoo Finance prices with dividends reinvested, over each company's own fiscal windows (1, 3 and 5 years; 3 is primary). The proxy-reported TSR serves as a cross-check.
 **Models.** OLS with HC3 robust errors: ln(average granted pay) and asinh(average CAP, $M) on annualised TSR (winsorised at 2.5/97.5%), ln(market cap at window start) and sector dummies.
-**Outliers.** Outliers are the residuals of the granted-pay model. Say-on-pay votes are parsed from 8-K Item 5.07 filings ({SP['n_meetings']} meetings, {SP['n_companies']} companies). Every assumption is logged in `ASSUMPTIONS.md`.
+**Outliers.** Outliers are the residuals of the granted-pay model. Say-on-pay votes are parsed from 8-K Item 5.07 filings ({SP['n_meetings']} meetings, {SP['n_companies']} companies). Every assumption is logged in `ASSUMPTIONS.md`; automated validation (permutation and bootstrap tests, numpy re-estimation, source-document and claim checks) is in `output/validation/validation_report.md`.
 
 ## Key findings
 
@@ -269,6 +271,8 @@ The exception is the last row. {excl} paid their CEOs almost nothing in new equi
 **5. Shareholders punish the level of pay, not weak returns.** Median say-on-pay support was {pct(SP['median_support'], 1)}; {SP['n_below_70']} meetings fell below the 70% level proxy advisers treat as a warning. Support falls as the pay residual rises (ρ = {SP['corr_resid_support']['spearman_rho']:.2f}, {pv(SP['corr_resid_support']['spearman_p'])}) but is unrelated to TSR (ρ = {SP['corr_tsr_support']['spearman_rho']:.2f}, {pv(SP['corr_tsr_support']['spearman_p'])}). In a linear model controlling for TSR the residual effect is {SP['ols_support_on_resid_tsr']['coefs']['resid']['coef']:.1f} points of support per log point of excess pay ({pv(SP['ols_support_on_resid_tsr']['coefs']['resid']['p'])}), so the effect is real but modest (`05_say_on_pay_vs_residual.png`).
 
 **6. Pay-versus-performance tables contain errors.** Our independent TSR matches the proxy within 1 point for {pct(TQ['share_within_1pt'])} of company-years (median gap {TQ['median_abs_gap_pts']:.2f} points). The errors cluster. {TQ['flag_reasons'].get('stale_base', 0)} companies carried earlier-year TSR forward from the prior year's base instead of restating it, and {misdated_txt} tagged its values one year early. Palantir's PvP table shows 2024 CEO pay of $4,630,170 while its Summary Compensation Table shows $4,360,170, a transposition in the same filing ([proxy]({SRC['PLTR_proxy']})). Multi-year proxy TSR should not be used without checking it against market data (`06_tsr_crosscheck.png`).
+
+**7. Excess pay did not predict future returns.** Following Cooper, Gulen &amp; Rau, who found that high "excess pay" firms underperformed in 1994–2011, we formed point-in-time quintiles on the pay residual using only data public at formation. Cohort A used FY2021–23 pay and was formed {stA['formation']}; cohort B used FY2022–24 pay and was formed {stB['formation']}. CAPM abnormal returns (pre-formation beta, T-bill risk-free rate) show no relation in either cohort: rank correlation {mA['rank_ic']['spearman_rho']:+.2f} ({pv(mA['rank_ic']['spearman_p'])}) and {mB['rank_ic']['spearman_rho']:+.2f} ({pv(mB['rank_ic']['spearman_p'])}); most-overpaid minus most-underpaid median {100 * mA['q5_minus_q1_median']:+.1f} and {100 * mB['q5_minus_q1_median']:+.1f} points. A raw-mean spread of {100 * mA['q5_minus_q1']:+.0f} points in cohort A came from one stock ({mA['top_movers'][0]['ticker']}), which is why medians are used (`07_strategy_test.png`).
 
 ## Outliers: who is paid most above and below the model
 

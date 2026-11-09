@@ -87,3 +87,15 @@ Each entry states the decision, the reason, and its likely impact.
 | R3 | Charts are static PNGs (light theme) for print/PDF. The dataviz palette was validated for colour-vision deficiency. Their "table view" is the CSV set in `output/tables/`. | Report and README embed images. Interactivity does not apply to PDF. | |
 | R4 | The LinkedIn graphic is 1080x1350 px (4:5 portrait, the largest feed format) and states its sample, sources and "correlation, not causation". | Standalone shareability. | |
 | R5 | The notebook regenerates the analysis offline from committed processed data. `RUN_PIPELINE = True` re-downloads from source. | Runs top to bottom without network or credentials. | |
+
+## Strategy test & validation (added for the class project)
+
+| # | Assumption / decision | Why | Impact |
+|---|---|---|---|
+| S1 | **Point-in-time formation dates.** Cohort A (pay FY2021-23) forms 2024-09-30 and cohort B (pay FY2022-24) forms 2025-09-30, after every proxy for those years was filed. Positions are held to the last common price date. | Avoid look-ahead bias: the signal uses only information public at formation. | Holding periods are about 2.1 and 1.1 years. |
+| S2 | The "excess pay" signal is the residual of the primary model **re-fitted on that cohort's window only**. | The model itself must not use future data. | The cohort A signal model has R² 0.49 (vs 0.19 for the latest window). |
+| S3 | Earlier-year pay comes from the latest proxy, not the proxy filed at the time. | Simplicity; SCT totals are rarely restated. | Small look-ahead risk, documented. |
+| S4 | Abnormal return = (R − Rf) − β(R_SPY − Rf). β comes from 104 weekly returns before formation; Rf compounds the 13-week T-bill (^IRX). | CAPM benchmark. | Raw, SPY-relative and sector-adjusted returns are also reported. |
+| S5 | **Medians, 5/95% winsorized means, Mann-Whitney and rank IC are the primary statistics.** Raw means are shown but not relied on. | Single "moonshot" stocks (Bloom Energy +1,798%, Moderna +900%, both verified as real moves) dominate 19-stock equal-weighted means. | Conclusion: no predictive signal in either cohort. |
+| V1 | The validation suite (`src/validate.py`) uses 2,000 permutations and 2,000 bootstrap draws (seed 11). | Distribution-free inference that does not rely on OLS assumptions. | Results are reproducible. |
+| V2 | Claim verification uses regex matches against the cached text of the cited filing. A claim fails if its wording is not found. | Mechanical anti-hallucination check on every quoted filing fact. | 27/27 pass. |

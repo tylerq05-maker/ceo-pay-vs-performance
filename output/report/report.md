@@ -21,7 +21,7 @@
 **Pay mix.** Pay mix is parsed from the Summary Compensation Table HTML. A row is kept only if its components sum to its total *and* that total equals the XBRL figure.
 **Performance.** TSR is computed independently from Yahoo Finance prices with dividends reinvested, over each company's own fiscal windows (1, 3 and 5 years; 3 is primary). The proxy-reported TSR serves as a cross-check.
 **Models.** OLS with HC3 robust errors: ln(average granted pay) and asinh(average CAP, $M) on annualised TSR (winsorised at 2.5/97.5%), ln(market cap at window start) and sector dummies.
-**Outliers.** Outliers are the residuals of the granted-pay model. Say-on-pay votes are parsed from 8-K Item 5.07 filings (248 meetings, 89 companies). Every assumption is logged in `ASSUMPTIONS.md`.
+**Outliers.** Outliers are the residuals of the granted-pay model. Say-on-pay votes are parsed from 8-K Item 5.07 filings (248 meetings, 89 companies). Every assumption is logged in `ASSUMPTIONS.md`; automated validation (permutation and bootstrap tests, numpy re-estimation, source-document and claim checks) is in `output/validation/validation_report.md`.
 
 ## Key findings
 
@@ -62,6 +62,8 @@ The exception is the last row. AMZN, COIN, META, PLTR paid their CEOs almost not
 **5. Shareholders punish the level of pay, not weak returns.** Median say-on-pay support was 92.2%; 18 meetings fell below the 70% level proxy advisers treat as a warning. Support falls as the pay residual rises (ρ = -0.30, p = 0.004) but is unrelated to TSR (ρ = -0.02, p = 0.85). In a linear model controlling for TSR the residual effect is -3.6 points of support per log point of excess pay (p = 0.29), so the effect is real but modest (`05_say_on_pay_vs_residual.png`).
 
 **6. Pay-versus-performance tables contain errors.** Our independent TSR matches the proxy within 1 point for 84% of company-years (median gap 0.07 points). The errors cluster. 9 companies carried earlier-year TSR forward from the prior year's base instead of restating it, and BlackRock tagged its values one year early. Palantir's PvP table shows 2024 CEO pay of $4,630,170 while its Summary Compensation Table shows $4,360,170, a transposition in the same filing ([proxy](https://www.sec.gov/Archives/edgar/data/1321655/000132165526000019/pltr-20260423.htm)). Multi-year proxy TSR should not be used without checking it against market data (`06_tsr_crosscheck.png`).
+
+**7. Excess pay did not predict future returns.** Following Cooper, Gulen &amp; Rau, who found that high "excess pay" firms underperformed in 1994–2011, we formed point-in-time quintiles on the pay residual using only data public at formation. Cohort A used FY2021–23 pay and was formed 2024-09-30; cohort B used FY2022–24 pay and was formed 2025-09-30. CAPM abnormal returns (pre-formation beta, T-bill risk-free rate) show no relation in either cohort: rank correlation +0.03 (p = 0.78) and +0.03 (p = 0.79); most-overpaid minus most-underpaid median +0.0 and -7.5 points. A raw-mean spread of +94 points in cohort A came from one stock (BE), which is why medians are used (`07_strategy_test.png`).
 
 ## Outliers: who is paid most above and below the model
 

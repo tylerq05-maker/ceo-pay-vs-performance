@@ -114,6 +114,9 @@ def _row_cells(tr) -> list[str]:
     for sup in tr.iter("sup"):
         # superscript footnote markers would otherwise glue onto numbers
         sup.text = " " + (sup.text or "") + " " if sup.text and len(sup.text.strip()) <= 3 else sup.text
+    for br in tr.iter("br"):
+        # stacked values ("2025<br>2024") must stay separate tokens
+        br.tail = " " + (br.tail or "")
     return [_clean(td.text_content()) for td in tr if td.tag in ("td", "th")]
 
 

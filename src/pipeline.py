@@ -15,7 +15,7 @@ import sys
 import time
 
 from . import (analysis, build_dataset, charts, compensation, config, market_data, outlier_evidence,
-               report, universe)
+               report, strategy, universe, validate)
 
 STEPS = [
     ("Phase 1  universe + stratified sample", lambda: universe.build()),
@@ -25,6 +25,8 @@ STEPS = [
     ("Phase 5a say-on-pay votes (8-K Item 5.07)", lambda: outlier_evidence.run_say_on_pay()),
     ("Phase 4b statistical analysis", lambda: analysis.run()),
     ("Phase 5b outlier proxy evidence", lambda: outlier_evidence.run()),
+    ("Phase 4c strategy test: does excess pay predict returns?", lambda: strategy.run()),
+    ("Validation suite", lambda: validate.run()),
     ("Phase 6a charts", lambda: charts.run()),
     ("Phase 6b report", lambda: report.build()),
 ]
